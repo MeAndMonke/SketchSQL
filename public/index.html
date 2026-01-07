@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/index.css">
+    <title>Draw SQL</title>
+</head>
+<body>
+    <div class="flex-column container">
+
+        <div class="topBar">
+            topbar
+        </div>
+
+        <div class="flex-row container">
+            <div class="sidebar">
+            </div>
+            <div class="mainScreen">
+                <button id="addNode">+</button>
+                <div id="canvas"></div>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+<script type="module">
+    import { NodeManager } from "./scripts/nodeManager.js";
+    import { Sidebar } from "./scripts/sidebar.js";
+    import { Canvas } from "./scripts/canvas.js";
+
+    const typeOptions = ['INT', 'VARCHAR', 'TEXT', 'BOOLEAN', 'DATE', 'DATETIME', 'FLOAT', 'DOUBLE'];
+    const sidebarElement = document.querySelector('.sidebar');
+
+    const nodeManager = new NodeManager();
+    const sidebar = new Sidebar({ sidebarElement, nodeManager, typeOptions });
+
+    const addNodeBtn = document.querySelector('#addNode');
+    if (addNodeBtn) {
+        addNodeBtn.addEventListener('click', () => {
+            const nodes = nodeManager.getNodes();
+            const newId = Math.max(0, ...nodes.map(n => n.id || 0)) + 1;
+            nodeManager.addNode({ id: newId, name: `Node${newId}`, rows: [] });
+            sidebar.render();
+        });
+    }
+
+    const canvasElement = document.getElementById('canvas');
+    const canvas = new Canvas(canvasElement, nodeManager);
+
+    sidebar.render();
+    canvas.syncWithNodeManager();
+</script>
+
+</html>
