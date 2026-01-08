@@ -8,7 +8,16 @@ export function attachEventListeners(sidebar) {
     sidebarElement.querySelectorAll('.nodeToggleListButton').forEach(button => {
         button.addEventListener('click', () => {
             const nodeList = button.nextElementSibling;
-            nodeList.style.display = nodeList.style.display === 'none' ? 'block' : 'none';
+            const sidebarNode = button.closest('.sidebarNode');
+            const isOpen = nodeList.style.display === 'block';
+            
+            nodeList.style.display = isOpen ? 'none' : 'block';
+            
+            if (isOpen) {
+                sidebarNode.classList.remove('expanded');
+            } else {
+                sidebarNode.classList.add('expanded');
+            }
         });
     });
 

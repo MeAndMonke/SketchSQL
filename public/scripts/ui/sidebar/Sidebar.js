@@ -26,6 +26,7 @@ export class Sidebar {
             const nodeId = parseInt(list.parentElement.dataset.nodeId, 10);
             if (this.expandedNodes.has(nodeId)) {
                 list.style.display = 'block';
+                list.parentElement.classList.add('expanded');
             }
         });
 
