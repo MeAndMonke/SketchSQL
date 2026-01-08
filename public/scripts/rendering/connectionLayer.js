@@ -4,13 +4,13 @@ export class ConnectionLayer {
         this.svg = svgEl;
         this.nodeManager = nodeManager;
         this.grid = grid;
-        this.viewport = viewport; // used for coordinate conversions
-        this.onClick = null; // external click handler
+        this.viewport = viewport;
+        this.onClick = null;
         this._tempPath = null;
 
-        // Delegate clicks to the SVG so redraws don't drop handlers
         if (!this._delegated) {
             this.svg.addEventListener('click', (evt) => {
+                // onclick to detect which connection was clicked
                 const g = evt.target.closest('g[data-source-node-id]');
                 if (!g) {
                     return;
@@ -24,10 +24,10 @@ export class ConnectionLayer {
                     targetNodeId: parseInt(g.dataset.targetNodeId, 10),
                     targetRowIndex: parseInt(g.dataset.targetRowIndex, 10),
                     connIndex: parseInt(g.dataset.connIndex, 10),
-                    rel: g.dataset.rel || '1:N'
+                    rel: g.dataset.rel || '1:1'
                 };
                 this.onClick(evt, ref);
-            }, true); // use capture phase
+            }, true);
             this._delegated = true;
         }
     }
@@ -44,6 +44,7 @@ export class ConnectionLayer {
     }
 
     drawConnections(nodes, canvasNodes) {
+        // Draw all connections between nodes
         this.clear();
         this.resizeToCanvas();
         const panX = this.viewport ? this.viewport.panX : 0;
@@ -58,9 +59,9 @@ export class ConnectionLayer {
                 const raw = Array.isArray(row.foreignKeyTo) ? row.foreignKeyTo : [row.foreignKeyTo];
                 const connections = raw.map((entry) => {
                     if (entry && typeof entry === 'object') {
-                        return { target: entry.target ?? entry, rel: entry.rel ?? '1:N', midX: entry.midX, midY: entry.midY };
+                        return { target: entry.target ?? entry, rel: entry.rel ?? '1:1', midX: entry.midX, midY: entry.midY };
                     }
-                    return { target: entry, rel: '1:N' };
+                    return { target: entry, rel: '1:1' };
                 });
 
                 connections.forEach((conn, connIndex) => {
@@ -94,25 +95,25 @@ export class ConnectionLayer {
                     const targetRowBounds = targetRowElement?.getBoundingClientRect();
                     const targetRowY = targetRowBounds ? targetRowBounds.top - canvasBounds.top + targetRowBounds.height / 2 : targetBounds.top - canvasBounds.top + 50;
 
-                    // Screen-relative (within canvas) positions
+                    // screen relative coordinates
                     const x1r = sourceBounds.right - canvasBounds.left;
                     const y1r = sourceRowY;
                     const x2r = targetBounds.left - canvasBounds.left;
                     const y2r = targetRowY;
 
-                    // Convert to canvas coordinate space
+                    // convert to canvas space
                     let x1c = (x1r - panX) / zoom;
                     let y1c = (y1r - panY) / zoom;
                     let x2c = (x2r - panX) / zoom;
                     let y2c = (y2r - panY) / zoom;
 
-                    // Snap X only; keep Y centered on row visuals
+                    // snap to grid
                     if (this.grid) {
                         x1c = this.grid.snap(x1c);
                         x2c = this.grid.snap(x2c);
                     }
 
-                    // Use stored midX if available, otherwise compute default
+                    // use custom midX if provided
                     let midXc;
                     if (conn.midX !== undefined) {
                         midXc = this.grid ? this.grid.snap(conn.midX) : conn.midX;
@@ -121,12 +122,12 @@ export class ConnectionLayer {
                         if (this.grid) midXc = this.grid.snap(midXc);
                     }
 
-                    // Calculate stub positions in canvas space and snap to grid
+                    // calc stubs
                     const stubSize = this.grid ? this.grid.size : 20;
                     const x1StubC = x1c + stubSize;
                     const x2StubC = x2c - stubSize;
 
-                    // Convert all points to screen-relative for drawing
+                    // convert back to screen-relative for drawing
                     const x1 = panX + x1c * zoom;
                     const y1 = panY + y1c * zoom;
                     const x2 = panX + x2c * zoom;
@@ -135,15 +136,15 @@ export class ConnectionLayer {
                     const x1Stub = panX + x1StubC * zoom;
                     const x2Stub = panX + x2StubC * zoom;
 
-                    // Create orthogonal path with stubs
+                    // create path
                     let d;
                     if (conn.midY !== undefined) {
-                        // User has customized the routing - use 3-segment path through control point
+                        // user defined midY
                         const midYc = this.grid ? this.grid.snap(conn.midY) : conn.midY;
                         const midY = panY + midYc * zoom;
                         d = `M ${x1} ${y1} L ${x1Stub} ${y1} L ${midX} ${y1} L ${midX} ${midY} L ${x2Stub} ${midY} L ${x2Stub} ${y2} L ${x2} ${y2}`;
                     } else {
-                        // Default routing - simple 2-segment path with stubs
+                        // default midY at y1 to y2 line
                         d = `M ${x1} ${y1} L ${x1Stub} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2Stub} ${y2} L ${x2} ${y2}`;
                     }
 
@@ -165,18 +166,22 @@ export class ConnectionLayer {
                     visible.setAttribute('stroke-linecap', 'round');
                     visible.style.cursor = 'pointer';
 
-                    // Annotate group for delegated click handling
+                    // data attributes for identification
                     group.dataset.sourceNodeId = String(sourceNode.id);
                     group.dataset.sourceRowIndex = String(rowIndex);
                     group.dataset.targetNodeId = String(targetNode.id);
                     group.dataset.targetRowIndex = String(targetRowIndex);
                     group.dataset.connIndex = String(connIndex);
-                    group.dataset.rel = String(conn.rel || '1:N');
+                    group.dataset.rel = String(conn.rel || '1:1');
 
                     group.appendChild(hit);
                     group.appendChild(visible);
 
-                    // Add draggable control point
+                    // add relationship
+                    const rel = conn.rel || '1:1';
+                    this._addRelationshipNotation(group, rel, x1, y1, x2, y2, zoom);
+
+                    // add control dot for mid-point
                     const controlDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     controlDot.setAttribute('cx', midX);
                     if (conn.midY !== undefined) {
@@ -187,7 +192,7 @@ export class ConnectionLayer {
                         controlDot.setAttribute('cy', y1);
                     }
                     controlDot.setAttribute('r', '6');
-                    controlDot.setAttribute('fill', '#5b9dd9');
+                    controlDot.setAttribute('fill', '#2b5f91ff');
                     controlDot.setAttribute('stroke', '#fff');
                     controlDot.setAttribute('stroke-width', '2');
                     controlDot.classList.add('connection-control-dot');
@@ -200,17 +205,17 @@ export class ConnectionLayer {
         });
     }
 
-    // Temporary connection drawing during drag from a dot
+    // temporary connection line during creation
     showTempFromDot(startDotEl) {
         const rect = this.canvas.getBoundingClientRect();
         const b = startDotEl.getBoundingClientRect();
         const panX = this.viewport ? this.viewport.panX : 0;
         const panY = this.viewport ? this.viewport.panY : 0;
         const zoom = this.viewport ? this.viewport.zoom : 1;
-        // start in screen-relative
+        // start in screen relative
         const xs = b.left - rect.left + b.width / 2;
         const ys = b.top - rect.top + b.height / 2;
-        // store canvas-space start
+        // store canvas space start
         this._tempStartCanvas = {
             x: (xs - panX) / zoom,
             y: (ys - panY) / zoom,
@@ -227,7 +232,7 @@ export class ConnectionLayer {
         const panX = this.viewport ? this.viewport.panX : 0;
         const panY = this.viewport ? this.viewport.panY : 0;
         const zoom = this.viewport ? this.viewport.zoom : 1;
-        // end in screen-relative
+        // end in screen relative
         const xr = clientX - rect.left;
         const yr = clientY - rect.top;
         // convert to canvas coords
@@ -235,7 +240,7 @@ export class ConnectionLayer {
         const y2c = (yr - panY) / zoom;
         let midXc = (this._tempStartCanvas.x + x2c) / 2;
         if (this.grid) midXc = this.grid.snap(midXc);
-        // convert back to screen-relative for drawing
+        // convert back to screen relative for drawing
         const x1 = panX + this._tempStartCanvas.x * zoom;
         const y1 = panY + this._tempStartCanvas.y * zoom;
         const x2 = panX + x2c * zoom;
@@ -253,6 +258,7 @@ export class ConnectionLayer {
     }
 
     _ensureTemp() {
+        // create temp path if not exists
         if (!this._tempPath) {
             const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             p.setAttribute('stroke', '#5b9dd9');
@@ -262,5 +268,109 @@ export class ConnectionLayer {
             this.svg.appendChild(p);
             this._tempPath = p;
         }
+    }
+
+    _addRelationshipNotation(group, rel, x1, y1, x2, y2, zoom) {
+        const footSize = 5 * zoom;
+        
+        if (rel === '1:1') {
+            // single line at both source and target
+            const line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line1.setAttribute('x1', x1 - footSize);
+            line1.setAttribute('y1', y1 - footSize);
+            line1.setAttribute('x2', x1 - footSize);
+            line1.setAttribute('y2', y1 + footSize);
+            line1.setAttribute('stroke', '#5b9dd9');
+            line1.setAttribute('stroke-width', '2');
+            line1.setAttribute('pointer-events', 'none');
+            group.appendChild(line1);
+            
+            const line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line2.setAttribute('x1', x2 + footSize);
+            line2.setAttribute('y1', y2 - footSize);
+            line2.setAttribute('x2', x2 + footSize);
+            line2.setAttribute('y2', y2 + footSize);
+            line2.setAttribute('stroke', '#5b9dd9');
+            line2.setAttribute('stroke-width', '2');
+            line2.setAttribute('pointer-events', 'none');
+            group.appendChild(line2);
+        } else if (rel === '1:N') {
+            // at source (x1, y1), N (crow's foot) at target (x2, y2)
+            const line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line1.setAttribute('x1', x1 - footSize);
+            line1.setAttribute('y1', y1 - footSize);
+            line1.setAttribute('x2', x1 - footSize);
+            line1.setAttribute('y2', y1 + footSize);
+            line1.setAttribute('stroke', '#5b9dd9');
+            line1.setAttribute('stroke-width', '2');
+            line1.setAttribute('pointer-events', 'none');
+            group.appendChild(line1);
+            
+            // add crow's foot at target
+            this._drawCrowsFoot(group, x2, y2, 'target', zoom);
+        } else if (rel === 'N:1') {
+            // at source (x1, y1), crow's foot at source, single line at target
+            this._drawCrowsFoot(group, x1, y1, 'source', zoom);
+            
+            // single line at target
+            const line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line2.setAttribute('x1', x2 + footSize);
+            line2.setAttribute('y1', y2 - footSize);
+            line2.setAttribute('x2', x2 + footSize);
+            line2.setAttribute('y2', y2 + footSize);
+            line2.setAttribute('stroke', '#5b9dd9');
+            line2.setAttribute('stroke-width', '2');
+            line2.setAttribute('pointer-events', 'none');
+            group.appendChild(line2);
+        }
+    }
+
+    _drawCrowsFoot(group, x, y, position, zoom) {
+        const footSize = 5 * zoom;
+        const offset = position === 'source' ? -footSize : footSize;
+        
+        // vertical line
+        const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        vLine.setAttribute('x1', x + offset);
+        vLine.setAttribute('y1', y - footSize);
+        vLine.setAttribute('x2', x + offset);
+        vLine.setAttribute('y2', y + footSize);
+        vLine.setAttribute('stroke', '#5b9dd9');
+        vLine.setAttribute('stroke-width', '2');
+        vLine.setAttribute('pointer-events', 'none');
+        group.appendChild(vLine);
+        
+        // top diagonal
+        const topDiag = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        topDiag.setAttribute('x1', x + offset);
+        topDiag.setAttribute('y1', y - footSize);
+        topDiag.setAttribute('x2', x);
+        topDiag.setAttribute('y2', y);
+        topDiag.setAttribute('stroke', '#5b9dd9');
+        topDiag.setAttribute('stroke-width', '2');
+        topDiag.setAttribute('pointer-events', 'none');
+        group.appendChild(topDiag);
+        
+        // middle horizontal
+        const midLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        midLine.setAttribute('x1', x + offset);
+        midLine.setAttribute('y1', y);
+        midLine.setAttribute('x2', x);
+        midLine.setAttribute('y2', y);
+        midLine.setAttribute('stroke', '#5b9dd9');
+        midLine.setAttribute('stroke-width', '2');
+        midLine.setAttribute('pointer-events', 'none');
+        group.appendChild(midLine);
+        
+        // bottom diagonal
+        const botDiag = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        botDiag.setAttribute('x1', x + offset);
+        botDiag.setAttribute('y1', y + footSize);
+        botDiag.setAttribute('x2', x);
+        botDiag.setAttribute('y2', y);
+        botDiag.setAttribute('stroke', '#5b9dd9');
+        botDiag.setAttribute('stroke-width', '2');
+        botDiag.setAttribute('pointer-events', 'none');
+        group.appendChild(botDiag);
     }
 }

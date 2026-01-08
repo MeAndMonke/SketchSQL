@@ -23,15 +23,15 @@ const requireNotLoggedIn = (req, res, next) => {
     }
 };
 app.get('/login', requireNotLoggedIn, (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/login.html'));
+    res.sendFile(path.join(__dirname, '../public/templates/login.html'));
 });
 app.get('/register', requireNotLoggedIn, (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/signup.html'));
+    res.sendFile(path.join(__dirname, '../public/templates/signup.html'));
+});
+app.get('/canvas/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/templates/canvas.html'));
 });
 app.use(express.static(path.join(__dirname, '../public')));
-app.get('/api/hello', (req, res) => {
-    res.json({ message: 'Hello from Express + TypeScript API!' });
-});
 app.post('/submit-login', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -42,6 +42,7 @@ app.post('/submit-login', async (req, res) => {
             req.session.user = rows[0];
             res.json({ message: 'Login successful', user: rows[0] });
             console.log('User logged in:', rows[0]);
+            res.redirect('/');
         }
         else {
             res.status(401).json({ message: 'Invalid credentials' });

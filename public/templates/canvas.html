@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="../css/canvas.css">
     <title>Draw SQL</title>
 </head>
 <body>
     <div class="flex-column container">
 
         <div class="topBar">
-            topbar
+            <button id="exportSQL">Export as SQL</button>
         </div>
 
         <div class="flex-row container">
@@ -26,15 +26,17 @@
 </body>
 
 <script type="module">
-    import { NodeManager } from "./scripts/nodeManager.js";
-    import { Sidebar } from "./scripts/sidebar.js";
-    import { Canvas } from "./scripts/canvas.js";
-
-    const typeOptions = ['INT', 'VARCHAR', 'TEXT', 'BOOLEAN', 'DATE', 'DATETIME', 'FLOAT', 'DOUBLE'];
+    import { NodeManager } from "../scripts/models/nodeManager.js";
+    import { Sidebar } from "../scripts/ui//sidebar/Sidebar.js";
+    import { Canvas } from "../scripts/core/canvas.js";
+    import { colorPalette } from "../scripts/config/colors.js";
+    import { typeOptions } from "../scripts/config/types.js";
+    import { generateSQL, downloadSQL } from "../scripts/utils/sqlExport.js";
     const sidebarElement = document.querySelector('.sidebar');
 
     const nodeManager = new NodeManager();
-    const sidebar = new Sidebar({ sidebarElement, nodeManager, typeOptions });
+    
+    const sidebar = new Sidebar({ sidebarElement, nodeManager, typeOptions, colorPalette });
 
     const addNodeBtn = document.querySelector('#addNode');
     if (addNodeBtn) {
@@ -51,6 +53,15 @@
 
     sidebar.render();
     canvas.syncWithNodeManager();
+    
+    // Export SQL functionality
+    const exportSQLBtn = document.querySelector('#exportSQL');
+    if (exportSQLBtn) {
+        exportSQLBtn.addEventListener('click', () => {
+            const sql = generateSQL(nodeManager.getNodes());
+            downloadSQL(sql);
+        });
+    }
 </script>
 
 </html>

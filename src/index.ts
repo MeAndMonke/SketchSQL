@@ -36,11 +36,15 @@ const requireNotLoggedIn = (req: Request, res: Response, next: Function) => {
 };
 
 app.get('/login', requireNotLoggedIn, (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, '../public/login.html'));
+    res.sendFile(path.join(__dirname, '../public/templates/login.html'));
 });
 
 app.get('/register', requireNotLoggedIn, (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, '../public/signup.html'));
+    res.sendFile(path.join(__dirname, '../public/templates/signup.html'));
+});
+
+app.get('/canvas/:id', (req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, '../public/templates/canvas.html'));
 });
 
 app.use(express.static(path.join(__dirname, '../public')));

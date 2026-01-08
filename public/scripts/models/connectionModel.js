@@ -4,6 +4,7 @@ export class ConnectionModel {
     }
 
     addConnection(sourceNodeId, sourceRowIndex, targetNodeId, targetRowIndex) {
+        // add a connection from source to target
         const value = `${targetNodeId}:${targetRowIndex}`;
         this.nodeManager.updateNode(sourceNodeId, node => {
             const row = node.rows[sourceRowIndex];
@@ -15,6 +16,7 @@ export class ConnectionModel {
     }
 
     deleteConnection(ref) {
+        // delete a connection based on reference
         this.nodeManager.updateNode(ref.sourceNodeId, (node) => {
             const row = node.rows[ref.sourceRowIndex];
             if (!row || !row.foreignKeyTo) return node;
@@ -28,6 +30,7 @@ export class ConnectionModel {
     }
 
     updateConnectionRel(ref, rel) {
+        // update the properties of a connection
         this.nodeManager.updateNode(ref.sourceNodeId, (node) => {
             const row = node.rows[ref.sourceRowIndex];
             if (!Array.isArray(row.foreignKeyTo)) {
@@ -35,7 +38,7 @@ export class ConnectionModel {
             }
             row.foreignKeyTo = row.foreignKeyTo.map((entry) => {
                 if (entry && typeof entry === 'object') return entry;
-                return { target: entry, rel: '1:N' };
+                return { target: entry, rel: '1:1' };
             });
             if (row.foreignKeyTo[ref.connIndex]) {
                 row.foreignKeyTo[ref.connIndex].rel = rel;
@@ -45,6 +48,7 @@ export class ConnectionModel {
     }
 
     updateConnectionMidX(ref, midXCanvas) {
+        // update the midX of a connection
         this.nodeManager.updateNode(ref.sourceNodeId, (node) => {
             const row = node.rows[ref.sourceRowIndex];
             if (!Array.isArray(row.foreignKeyTo)) {
@@ -52,7 +56,7 @@ export class ConnectionModel {
             }
             row.foreignKeyTo = row.foreignKeyTo.map((entry) => {
                 if (entry && typeof entry === 'object') return entry;
-                return { target: entry, rel: '1:N' };
+                return { target: entry, rel: '1:1' };
             });
             if (row.foreignKeyTo[ref.connIndex]) {
                 row.foreignKeyTo[ref.connIndex].midX = midXCanvas;
@@ -64,6 +68,7 @@ export class ConnectionModel {
     }
 
     updateConnectionMidY(ref, midYCanvas) {
+        // update the midY of a connection
         this.nodeManager.updateNode(ref.sourceNodeId, (node) => {
             const row = node.rows[ref.sourceRowIndex];
             if (!Array.isArray(row.foreignKeyTo)) {
@@ -71,7 +76,7 @@ export class ConnectionModel {
             }
             row.foreignKeyTo = row.foreignKeyTo.map((entry) => {
                 if (entry && typeof entry === 'object') return entry;
-                return { target: entry, rel: '1:N' };
+                return { target: entry, rel: '1:1' };
             });
             if (row.foreignKeyTo[ref.connIndex]) {
                 row.foreignKeyTo[ref.connIndex].midY = midYCanvas;
@@ -81,6 +86,7 @@ export class ConnectionModel {
     }
 
     updateConnectionMidPoint(ref, midXCanvas, midYCanvas) {
+        // update both midX and midY of a connection
         this.nodeManager.updateNode(ref.sourceNodeId, (node) => {
             const row = node.rows[ref.sourceRowIndex];
             if (!Array.isArray(row.foreignKeyTo)) {
@@ -88,7 +94,7 @@ export class ConnectionModel {
             }
             row.foreignKeyTo = row.foreignKeyTo.map((entry) => {
                 if (entry && typeof entry === 'object') return entry;
-                return { target: entry, rel: '1:N' };
+                return { target: entry, rel: '1:1' };
             });
             if (row.foreignKeyTo[ref.connIndex]) {
                 row.foreignKeyTo[ref.connIndex].midX = midXCanvas;

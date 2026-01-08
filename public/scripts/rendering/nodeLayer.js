@@ -1,10 +1,13 @@
+import { colorPalette, getColorForNode } from '../config/colors.js';
+
 export class NodeLayer {
     constructor(transformContainer, nodeManager) {
         this.container = transformContainer;
         this.nodeManager = nodeManager;
-        this.nodes = new Map(); // id -> { x, y, element }
+        this.nodes = new Map();
         this.selectedId = null;
         this.draggingId = null;
+        this.colorPalette = colorPalette;
     }
 
     setDraggingId(idOrNull) {
@@ -84,6 +87,11 @@ export class NodeLayer {
         const title = document.createElement('div');
         title.className = 'canvas-node-title';
         title.textContent = node.name;
+        
+        // style title with color
+        const color = getColorForNode(this.nodeManager, node.id);
+        title.style.background = `linear-gradient(135deg, ${color.bg} 0%, ${color.bg} 100%)`;
+        title.style.borderBottom = `2px solid ${color.border}`;
 
         const rows = document.createElement('div');
         rows.className = 'canvas-node-rows';
@@ -95,6 +103,7 @@ export class NodeLayer {
     }
 
     _updateNodeContent(element, node) {
+        // update title and rows
         const title = element.querySelector('.canvas-node-title');
         if (title) title.textContent = node.name;
         const rows = element.querySelector('.canvas-node-rows');
@@ -116,7 +125,7 @@ export class NodeLayer {
             
             if (row.indexType === 'Primary key') {
                 const img = document.createElement('img');
-                img.src = './svg/key.svg';
+                img.src = '../svg/key.svg';
                 img.alt = '';
                 img.style.marginRight = '4px';
                 img.style.width = '12px';
@@ -124,7 +133,7 @@ export class NodeLayer {
                 nameSpan.appendChild(document.createTextNode(row.name));
             } else if (row.indexType === 'Unique key') {
                 const img = document.createElement('img');
-                img.src = './svg/unique.svg';
+                img.src = '../svg/unique.svg';
                 img.alt = '';
                 img.style.marginRight = '4px';
                 img.style.width = '12px';
@@ -132,19 +141,46 @@ export class NodeLayer {
                 nameSpan.appendChild(document.createTextNode(row.name));
             } else if (row.indexType === 'Index') {
                 const img = document.createElement('img');
-                img.src = './svg/index.svg';
+                img.src = '../svg/index.svg';
                 img.alt = '';
                 img.style.marginRight = '4px';
                 img.style.width = '12px';
                 nameSpan.appendChild(img);
                 nameSpan.appendChild(document.createTextNode(row.name));
             } else {
-                nameSpan.textContent = row.name;
+                const spacer = document.createElement('span');
+                spacer.style.display = 'inline-block';
+                spacer.style.width = '16px'; // space for icons
+                nameSpan.appendChild(spacer);
+                nameSpan.appendChild(document.createTextNode(row.name));
             }
 
             const typeSpan = document.createElement('span');
             typeSpan.className = 'canvas-node-row-type';
             typeSpan.textContent = row.type;
+
+            // Create attributes container for comment and default icons
+            const attributesSpan = document.createElement('span');
+            attributesSpan.className = 'canvas-node-row-attributes';
+            
+            if (row.comment) {
+                const commentImg = document.createElement('img');
+                commentImg.src = '../svg/comment.svg';
+                commentImg.alt = 'Comment';
+                commentImg.title = row.comment;
+                commentImg.style.width = '12px';
+                commentImg.style.marginRight = '4px';
+                attributesSpan.appendChild(commentImg);
+            }
+            
+            if (row.defaultValue !== undefined && row.defaultValue !== '') {
+                const defaultSpan = document.createElement('img');
+                defaultSpan.src = '../svg/bookmark.svg';
+                defaultSpan.alt = 'Default value';
+                defaultSpan.title = `Default: ${row.defaultValue}`;
+                defaultSpan.style.width = '12px';
+                attributesSpan.appendChild(defaultSpan);
+            }
 
             const leftDot = document.createElement('div');
             leftDot.className = 'connection-dot left';
@@ -153,8 +189,19 @@ export class NodeLayer {
 
             rowEl.appendChild(leftDot);
             rowEl.appendChild(nameSpan);
+            if (attributesSpan.children.length > 0) {
+                rowEl.appendChild(attributesSpan);
+            }
             rowEl.appendChild(typeSpan);
-            rowEl.appendChild(rightDot);
+            
+            // add multiple right dots if specified
+            const dotCount = row.dotCount || 1;
+            for (let i = 0; i < dotCount; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'connection-dot right';
+                rowEl.appendChild(dot);
+            }
+            
             rowsContainer.appendChild(rowEl);
         });
     }

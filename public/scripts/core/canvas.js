@@ -1,15 +1,15 @@
-import { ConnectionLayer } from './connectionLayer.js';
+import { ConnectionLayer } from '../rendering/connectionLayer.js';
 import { Viewport } from './viewport.js';
-import { NodeLayer } from './nodeLayer.js';
-import { InteractionController } from './interactionController.js';
-import { ConnectionModel } from './connectionModel.js';
+import { NodeLayer } from '../rendering/nodeLayer.js';
+import { InteractionController } from '../ui/interactionController.js';
+import { ConnectionModel } from '../models/connectionModel.js';
 import { Grid } from './grid.js';
 
 export class Canvas {
     constructor(canvasElement, nodeManager) {
         this.canvas = canvasElement;
         this.nodeManager = nodeManager;
-        // Moved interaction state to InteractionController
+
         this._lastNodesJson = '';
         this._lastViewport = '';
         this._dirty = true;
@@ -25,21 +25,21 @@ export class Canvas {
         this.canvas.style.width = '100%';
         this.canvas.style.height = '100%';
         
-        // Create SVG for connection lines
+        // create SVG for connection lines
         if (!this.canvas.querySelector('#connectionSvg')) {
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.id = 'connectionSvg';
-            // Styling is controlled via CSS (#connectionSvg)
+
             this.canvas.appendChild(svg);
             this.connectionSvg = svg;
         } else {
+            // reuse existing SVG
             this.connectionSvg = this.canvas.querySelector('#connectionSvg');
-            // Ensure CSS controls z-index and pointer-events
             this.connectionSvg.style.zIndex = '';
             this.connectionSvg.style.pointerEvents = '';
         }
         
-        // Create a transform container for zoom/pan
+        // create a transform container for zoom/move
         if (!this.canvas.querySelector('.canvas-transform-container')) {
             const container = document.createElement('div');
             container.className = 'canvas-transform-container';
@@ -51,11 +51,12 @@ export class Canvas {
             this.canvas.appendChild(container);
             this.transformContainer = container;
         } else {
+            // reuse existing container
             this.transformContainer = this.canvas.querySelector('.canvas-transform-container');
             this.transformContainer.style.zIndex = '1';
         }
 
-        // Initialize modules
+        // initialize modules
         this.viewport = new Viewport(this.canvas, this.transformContainer);
         this.grid = new Grid(20);
         this.nodes = new NodeLayer(this.transformContainer, this.nodeManager);
@@ -73,20 +74,22 @@ export class Canvas {
     }
 
     setupEventListeners() {
-        // InteractionController wires all input events; keep only contextmenu prevention to be safe
+        // prevent context menu on canvas
         this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
-        // Mark dirty on viewport changes
+        // mark dirty on viewport change
         const markDirty = () => { this._dirty = true; };
         this.viewport.onChange = markDirty;
     }
 
     syncWithNodeManager() {
+        // sync nodes layer with node manager
         this.nodes.sync();
         const nodes = this.nodeManager.getNodes();
         const nodesJson = JSON.stringify(nodes);
         const viewportState = `${this.viewport.panX},${this.viewport.panY},${this.viewport.zoom}`;
 
+        // redraw connections if nodes or viewport changed
         const changed = nodesJson !== this._lastNodesJson || viewportState !== this._lastViewport;
         if (changed || this._dirty) {
             this.connections.drawConnections(nodes, this.nodes.getNodesMap());

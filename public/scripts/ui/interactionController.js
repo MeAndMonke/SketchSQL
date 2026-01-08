@@ -14,14 +14,15 @@ export class InteractionController {
         this.draggingNode = null; // id
         this.dragOffset = { x: 0, y: 0 };
         this.drawingConnection = false;
-        this.connectionStart = null; // { nodeId, rowIndex, dotElement }
-        this.draggingLine = null; // { ref, startX, moved: false }
+        this.connectionStart = null;
+        this.draggingLine = null;
 
         this._wireEvents();
         this._wireConnectionClicks();
     }
 
     _wireEvents() {
+        // prevent context menu
         this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
         this.canvas.addEventListener('wheel', (e) => this.viewport.handleWheel(e));
         this.canvas.addEventListener('mousedown', (e) => this._onMouseDown(e));
@@ -31,14 +32,49 @@ export class InteractionController {
     }
 
     _wireConnectionClicks() {
+        // show popup menu on connection click
         this.connections.onClick = (evt, ref) => {
             this.menu.show(evt.pageX, evt.pageY, [
+                { label: 'N:1', title: 'Many to One', className: 'menu-rel', onClick: () => {
+                    this.model.updateConnectionRel(ref, 'N:1');
+                    this._redrawConnections();
+                }},
+                { label: '1:1', title: 'One to One', className: 'menu-rel', onClick: () => {
+                    this.model.updateConnectionRel(ref, '1:1');
+                    this._redrawConnections();
+                }},
+                { label: '1:N', title: 'One to Many', className: 'menu-rel', onClick: () => {
+                    this.model.updateConnectionRel(ref, '1:N');
+                    this._redrawConnections();
+                }},
+                { label: '+ Add dot', title: 'Add another connection dot', className: 'menu-add', onClick: () => {
+                    this.nodeManager.updateNode(ref.sourceNodeId, node => {
+                        if (node.rows[ref.sourceRowIndex]) {
+                            node.rows[ref.sourceRowIndex].dotCount = (node.rows[ref.sourceRowIndex].dotCount || 1) + 1;
+                        }
+                        return node;
+                    });
+                    const nodesMap = this.nodes.getNodesMap();
+                    const nodeData = nodesMap.get(ref.sourceNodeId);
+                    if (nodeData) {
+                        const sourceNode = this.nodeManager.getNodes().find(n => n.id === ref.sourceNodeId);
+                        this.nodes._updateNodeContent(nodeData.element, sourceNode);
+                    }
+                }},
                 { label: '🗑', title: 'Delete connection', className: 'menu-trash', onClick: () => this.model.deleteConnection(ref) },
             ]);
         };
     }
+    
+    _redrawConnections() {
+        // redraw all connections
+        const nodes = this.nodeManager.getNodes();
+        const nodesMap = this.nodes.getNodesMap();
+        this.connections.drawConnections(nodes, nodesMap);
+    }
 
     _onMouseDown(e) {
+        // right button for panning
         if (e.button === 2) {
             e.preventDefault();
             this.viewport.beginPan(e.clientX, e.clientY);
@@ -46,7 +82,7 @@ export class InteractionController {
         }
         if (e.button !== 0) return;
 
-        // Check for connection dot first, even under SVG
+        // check for connection dot
         let connectionDot = e.target.closest('.connection-dot');
         if (!connectionDot) {
             const stack = document.elementsFromPoint(e.clientX, e.clientY);
@@ -59,7 +95,7 @@ export class InteractionController {
             return;
         }
 
-        // Check for control dot on connection line
+        // check for connection control dot (to drag line)
         if (e.target.classList && e.target.classList.contains('connection-control-dot')) {
             const g = e.target.closest('g[data-source-node-id]');
             if (g) {
@@ -70,7 +106,7 @@ export class InteractionController {
                     targetNodeId: parseInt(g.dataset.targetNodeId, 10),
                     targetRowIndex: parseInt(g.dataset.targetRowIndex, 10),
                     connIndex: parseInt(g.dataset.connIndex, 10),
-                    rel: g.dataset.rel || '1:N'
+                    rel: g.dataset.rel || '1:1'
                 };
                 const canvasCoords = this.viewport.toCanvasCoords(e.clientX, e.clientY);
                 this.draggingLine = { ref, startX: canvasCoords.x, moved: false };
@@ -78,18 +114,16 @@ export class InteractionController {
             }
         }
 
-        // If click is on a connection line (SVG path), it's for the menu
+        // check for clicks on empty connection area
         const inSvg = e.target.closest('#connectionSvg');
         if (inSvg) {
             const tag = (e.target.tagName || '').toLowerCase();
             if (tag === 'path') {
-                // Let the click event handle showing the menu
                 return;
             }
-            // clicked empty svg area, try to drag node underneath
         }
 
-        // Resolve underlying node even if an overlay element is on top
+        // check for node element
         let target = e.target.closest('.canvas-node');
         if (!target) {
             const stack = document.elementsFromPoint(e.clientX, e.clientY);
@@ -162,7 +196,7 @@ export class InteractionController {
         if (this.draggingLine) {
             const wasMoved = this.draggingLine.moved;
             this.draggingLine = null;
-            // If we moved, prevent the click event that would show the menu
+            // if it was moved prevent other actions
             if (wasMoved) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -171,7 +205,7 @@ export class InteractionController {
         }
 
         if (this.drawingConnection) {
-            // Look through all elements at cursor position to find connection dot
+            // check if released over a connection dot
             let targetDot = document.elementFromPoint(e.clientX, e.clientY)?.closest('.connection-dot');
             if (!targetDot) {
                 const stack = document.elementsFromPoint(e.clientX, e.clientY);
@@ -185,24 +219,23 @@ export class InteractionController {
                 const targetRowIndex = Array.from(targetNode.querySelectorAll('.canvas-node-row')).indexOf(targetRow);
                 const targetIsLeftDot = targetDot.classList.contains('left');
                 
-                // Determine connection direction
-                // Convention: connections stored as right->left (output->input)
+                // determine source and destination based on dot sides
                 let sourceNodeId, sourceRowIndex, destNodeId, destRowIndex;
                 
                 if (!this.connectionStart.isLeftDot && targetIsLeftDot) {
-                    // Right to left (normal direction)
+                    // Right to left
                     sourceNodeId = this.connectionStart.nodeId;
                     sourceRowIndex = this.connectionStart.rowIndex;
                     destNodeId = targetNodeId;
                     destRowIndex = targetRowIndex;
                 } else if (this.connectionStart.isLeftDot && !targetIsLeftDot) {
-                    // Left to right (reverse, so swap)
+                    // Left to right
                     sourceNodeId = targetNodeId;
                     sourceRowIndex = targetRowIndex;
                     destNodeId = this.connectionStart.nodeId;
                     destRowIndex = this.connectionStart.rowIndex;
                 } else {
-                    // Both left or both right - allow but use original order
+                    // Invalid connection (same side), abort
                     sourceNodeId = this.connectionStart.nodeId;
                     sourceRowIndex = this.connectionStart.rowIndex;
                     destNodeId = targetNodeId;
@@ -218,6 +251,7 @@ export class InteractionController {
             return;
         }
 
+        // finalize node dragging
         if (this.draggingNode) {
             const nodeId = this.draggingNode;
             const nd = this.nodes.getNodesMap().get(nodeId);
@@ -235,6 +269,7 @@ export class InteractionController {
     }
 
     _beginDrawConnection(dotElement) {
+        // start drawing a connection from this dot
         const row = dotElement.closest('.canvas-node-row');
         const node = dotElement.closest('.canvas-node');
         const nodeId = parseInt(node.dataset.nodeId, 10);

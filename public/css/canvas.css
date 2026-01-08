@@ -24,6 +24,25 @@
     height: var(--top-bar-height);
     background-color: #242424;
     color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.topBar button {
+    background-color: #5b9dd9;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-left: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.topBar button:hover {
+    background-color: #4a8bc2;
 }
 
 .sidebar {
@@ -55,7 +74,7 @@
     border: 2px solid #3e3e42;
     border-radius: 8px;
     overflow: visible;
-    min-width: 160px;
+    min-width: 220px;
     color: #cccccc;
     font-size: 12px;
     cursor: grab;
@@ -96,11 +115,11 @@
 }
 
 .connection-dot.left {
-    left: -10px;
+    left: -5px;
 }
 
 .connection-dot.right {
-    right: -10px;
+    right: -5px;
 }
 
 .connection-dot:hover {
@@ -111,13 +130,12 @@
 
 .canvas-node-title {
     font-weight: bold;
+    border-radius: 5px 5px 0 0;
     font-size: 13px;
     padding: 5.5px 12px;
     margin: 0;
     color: #ffffff;
-    background: linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%);
     text-align: center;
-    border-bottom: 2px solid #ff5a8a;
 }
 
 .canvas-node-rows {
@@ -157,6 +175,25 @@
     font-size: 10px;
     text-align: right;
     margin-left: 8px;
+}
+
+.canvas-node-row-attributes {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    margin-left: 8px;
+}
+
+.canvas-node-row-attributes img {
+    width: 12px;
+    height: 12px;
+    opacity: 0.8;
+}
+
+.default-indicator {
+    font-size: 11px;
+    color: #4ecdc4;
+    font-weight: bold;
 }
 
 #connectionSvg {
@@ -214,6 +251,20 @@
 }
 
 .connection-menu .menu-trash:hover {
+    background: #3a4456;
+}
+
+.connection-menu .menu-rel {
+    background: transparent;
+    color: #a8dadc;
+    border: 1px solid #3a4456;
+    border-radius: 6px;
+    padding: 6px 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.connection-menu .menu-rel:hover {
     background: #3a4456;
 }
 
@@ -276,6 +327,7 @@
 
 .nodeColorBar {
     position: absolute;
+    border-radius: 10px 10px 10px 10px;
     width: 5px;
     height: 100%;
     background-color: #ff0000;
@@ -425,4 +477,167 @@ select {
         linear-gradient(to right, rgba(0,0,0,0.06) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(0,0,0,0.06) 1px, transparent 1px);
     background-size: var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size);
+}
+
+/* Column Attributes Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.column-attributes-modal {
+    background-color: #2d2d30;
+    border-radius: 8px;
+    width: 400px;
+    color: #cccccc;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #3e3e42;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #cccccc;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    color: #cccccc;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    color: #ffffff;
+}
+
+.modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.checkbox-label span {
+    font-size: 14px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #aaaaaa;
+}
+
+.form-group input,
+.form-group textarea {
+    background-color: #1e1e1e;
+    border: 1px solid #3e3e42;
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: #cccccc;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #5b9dd9;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+.modal-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #3e3e42;
+}
+
+.delete-column-btn {
+    background-color: transparent;
+    border: 1px solid #f06b5d;
+    color: #f06b5d;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.2s;
+}
+
+.delete-column-btn:hover {
+    background-color: #f06b5d;
+    color: #ffffff;
+}
+
+.connection-dots-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.add-dot-btn {
+    background-color: #5b9dd9;
+    border: none;
+    color: #ffffff;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    flex: 1;
+    transition: background-color 0.2s;
+}
+
+.add-dot-btn:hover {
+    background-color: #4a8bc2;
+}
+
+.dot-count {
+    font-size: 12px;
+    color: #aaaaaa;
+    white-space: nowrap;
 }
