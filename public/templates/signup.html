@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/login.css">
     <title>Signup</title>
 </head>
 <body>
 
     <div class="login-container">
         <form onsubmit="postSignup(); return false;">
-            <label for="username">Username:</label>
+            <label for="username">Username</label>
             <input type="text" id="username" name="username" required>
             <br>
-            <label for="email">Email:</label>
+            <label for="email">Email</label>
             <input type="email" id="email" name="email" required>
             <br>
             <label for="password">Password:</label>
@@ -29,13 +30,13 @@
         const username = sessionStorage.getItem('username');
         const userId = sessionStorage.getItem('userId');
 
-        const session = fetch('/api/checkLogedin')
+        const session = fetch('/api/user')
             .then(response => response.json())
             .then(data => {
                 return data.loggedIn;
         });
 
-        if (username && userId && session) {
+        if (username && userId && session == 200) {
             window.location.href = '/';
         }
     }
@@ -47,7 +48,7 @@
         const password = document.getElementById('password').value;
         const email = document.getElementById('email').value;
 
-        fetch('/submit-signup', {
+        fetch('/api/submit-signup', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

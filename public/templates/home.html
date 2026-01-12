@@ -9,14 +9,14 @@
 <body>
     <div class="topbar">
         <div class="topbar-right">
-            <div class="profileImage"><img id="profileImage" src="https://avatar.iran.liara.run/username?username=" alt="Profile Image"></div>
+            <div class="profileImage"><img id="profileImage" src="https://ui-avatars.com/api/?name=User&background=random&size=128" alt="Profile Image"></div>
         </div>
     </div>
 
     <div class="main-container">
         <aside class="sidebar">
             <div class="profile-section">
-                <div class="profile-avatar"><img id="sidebarProfileImage" src="https://avatar.iran.liara.run/username?username=" alt="Profile"></div>
+                <div class="profile-avatar"><img id="sidebarProfileImage" src="https://ui-avatars.com/api/?name=User&background=random&size=128" alt="Profile"></div>
                 <span id="sidebarUsername" class="profile-name">Username</span>
             </div>
             
@@ -35,18 +35,34 @@
     </div>
 
     <script>
-        function checkLoggedIn() {
-            const username = sessionStorage.getItem('username');
-            const userId = sessionStorage.getItem('userId');
-
-            if (username && userId) {
-                document.getElementById('profileImage').src = `https://avatar.iran.liara.run/username?username=${username}`;
-                document.getElementById('sidebarProfileImage').src = `https://avatar.iran.liara.run/username?username=${username}`;
+        async function checkLoggedIn() {
+            try {
+                const response = await fetch('/api/user');
+                const data = await response.json();
                 
-                document.getElementById('sidebarUsername').textContent = username;
+                console.log('User data:', data);
                 
-                loadDiagrams(userId);
-            } else {
+                // If logged in, show the home page content
+                if (data.status === 200 && data.user) {
+                    const username = data.user.username;
+                    const userId = data.user.id;
+                    
+                    console.log('Setting profile images for:', username);
+                    
+                    // Using ui-avatars.com which is more reliable
+                    const avatarUrl = `https://ui-avatars.com/api/?name=${username}&background=random&size=128`;
+                    
+                    document.getElementById('profileImage').src = avatarUrl;
+                    document.getElementById('sidebarProfileImage').src = avatarUrl;
+                    document.getElementById('sidebarUsername').textContent = username;
+                    
+                    loadDiagrams(userId);
+                } else {
+                    // Not logged in, redirect to login page
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Error checking login status:', error);
                 window.location.href = '/login';
             }
         }

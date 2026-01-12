@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/login.css">
     <title>Login</title>
 </head>
 <body>
 
     <div class="login-container">
         <form onsubmit="postLogin(); return false;">
-            <label for="username">Username:</label>
+            <label for="username">Username</label>
             <input type="text" id="username" name="username" required>
             <br>
-            <label for="password">Password:</label>
+            <label for="password">Password</label>
             <input type="password" id="password" name="password" required>
             <br>
             <button type="submit">Login</button>
@@ -22,12 +23,18 @@
 </body>
 <script>
 
-    function checkLoggedIn() {
-        const username = sessionStorage.getItem('username');
-        const userId = sessionStorage.getItem('userId');
-
-        if (username && userId) {
-            window.location.href = '/';
+    async function checkLoggedIn() {
+        try {
+            const response = await fetch('/api/user');
+            const data = await response.json();
+            
+            // If already logged in on server, redirect to home
+            if (data.status === 200 && data.user) {
+                window.location.href = '/';
+            }
+        } catch (error) {
+            // Not logged in, stay on login page
+            console.log('Not logged in');
         }
     }
 
@@ -37,7 +44,9 @@
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
-        fetch('/submit-login', {
+        console.log(username, password);
+
+        fetch('/api/submit-login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -48,7 +57,8 @@
         .then(data => {
             console.log('Success:', data);
             if (data.message === 'Login successful') {
-                sessionStorage.setItem('username', data.user.username);
+                sessionStorage.setItem('username', username);
+                console.log(data.user.id);
                 sessionStorage.setItem('userId', data.user.id);
                 window.location.href = '/';
             }
