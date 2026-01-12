@@ -27,19 +27,11 @@ app.use(session({
     cookie: { secure: false },
 }));
 
-const requireNotLoggedIn = (req: Request, res: Response, next: Function) => {
-    if (req.session.user) {
-        res.redirect('/');
-    } else {
-        next();
-    }
-};
-
-app.get('/login', requireNotLoggedIn, (req: Request, res: Response) => {
+app.get('/login', (req: Request, res: Response) => {
     res.sendFile(path.join(__dirname, '../public/templates/login.html'));
 });
 
-app.get('/register', requireNotLoggedIn, (req: Request, res: Response) => {
+app.get('/register', (req: Request, res: Response) => {
     res.sendFile(path.join(__dirname, '../public/templates/signup.html'));
 });
 
@@ -47,7 +39,21 @@ app.get('/canvas/:id', (req: Request, res: Response) => {
     res.sendFile(path.join(__dirname, '../public/templates/canvas.html'));
 });
 
+app.get('/', (req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, '../public/templates/home.html'));
+});
+
 app.use(express.static(path.join(__dirname, '../public')));
+
+app.get('/logout', (req: Request, res: Response) => {
+    req.session.destroy((err) => {
+        if (err) {
+            res.status(500).json({ message: 'Logout failed' });
+        } else {
+            res.json({ message: 'Logged out' });
+        }
+    });
+});
 
 app.post('/submit-login', async (req: Request, res: Response) => {
   const { username, password } = req.body;
@@ -62,14 +68,14 @@ app.post('/submit-login', async (req: Request, res: Response) => {
 
     if (rows.length > 0) {
         req.session.user = rows[0];
-        res.json({ message: 'Login successful', user: rows[0] });
-        console.log('User logged in:', rows[0]);
-        res.redirect('/');
+        res.json({ message: 'Login successful', user: { username: rows[0].username, id: rows[0].id } });
+        console.log('User logged in:', rows[0].username);
     } else {
         res.status(401).json({ message: 'Invalid credentials' });
         }
     } catch (error) {
         res.status(500).json({ message: 'Database error' });
+        console.log(error);
     }
 });
 
@@ -113,6 +119,14 @@ app.get('/logout', (req: Request, res: Response) => {
             res.json({ message: 'Logged out' });
         }
     });
+});
+
+app.get("/api/checkLogedin", (req: Request, res: Response) => {
+    if (req.session.user) {
+        res.json({ loggedIn: true });
+    } else {
+        res.json({ loggedIn: false });
+    }
 });
 
 app.listen(PORT, () => {

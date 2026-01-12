@@ -24,6 +24,24 @@
 
 </body>
 <script>
+
+    function checkLoggedIn() {
+        const username = sessionStorage.getItem('username');
+        const userId = sessionStorage.getItem('userId');
+
+        const session = fetch('/api/checkLogedin')
+            .then(response => response.json())
+            .then(data => {
+                return data.loggedIn;
+        });
+
+        if (username && userId && session) {
+            window.location.href = '/';
+        }
+    }
+
+    checkLoggedIn();
+
     function postSignup() {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;

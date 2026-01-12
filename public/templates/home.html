@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - SketchSQL</title>
+    <link rel="stylesheet" href="../css/home.css">
+</head>
+<body>
+    <div class="topbar">
+        <div class="topbar-right">
+            <div class="profileImage"><img id="profileImage" src="https://avatar.iran.liara.run/username?username=" alt="Profile Image"></div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="profile-section">
+                <div class="profile-avatar"><img id="sidebarProfileImage" src="https://avatar.iran.liara.run/username?username=" alt="Profile"></div>
+                <span id="sidebarUsername" class="profile-name">Username</span>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <div class="menu-item">My Diagrams</div>
+                <div class="menu-item">Shared With Me</div>
+                <div class="menu-item">Create New Folder</div>
+                <div class="menu-item">My Favorites</div>
+            </nav>
+        </aside>
+
+        <main class="content">
+            <div class="diagrams-grid" id="diagramsGrid">
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function checkLoggedIn() {
+            const username = sessionStorage.getItem('username');
+            const userId = sessionStorage.getItem('userId');
+
+            if (username && userId) {
+                document.getElementById('profileImage').src = `https://avatar.iran.liara.run/username?username=${username}`;
+                document.getElementById('sidebarProfileImage').src = `https://avatar.iran.liara.run/username?username=${username}`;
+                
+                document.getElementById('sidebarUsername').textContent = username;
+                
+                loadDiagrams(userId);
+            } else {
+                window.location.href = '/login';
+            }
+        }
+
+        function loadDiagrams(userId) {
+            const grid = document.getElementById('diagramsGrid');
+            for (let i = 0; i < 8; i++) {
+                const card = document.createElement('div');
+                card.className = 'diagram-card';
+                card.innerHTML = `
+                    <div class="diagram-preview">Preview Image</div>
+                    <div class="diagram-title">Diagram title</div>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        checkLoggedIn();
+    </script>
+</body>
+</html>

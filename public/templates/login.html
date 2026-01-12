@@ -21,6 +21,18 @@
 
 </body>
 <script>
+
+    function checkLoggedIn() {
+        const username = sessionStorage.getItem('username');
+        const userId = sessionStorage.getItem('userId');
+
+        if (username && userId) {
+            window.location.href = '/';
+        }
+    }
+
+    checkLoggedIn();
+
     function postLogin() {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
@@ -36,6 +48,8 @@
         .then(data => {
             console.log('Success:', data);
             if (data.message === 'Login successful') {
+                sessionStorage.setItem('username', data.user.username);
+                sessionStorage.setItem('userId', data.user.id);
                 window.location.href = '/';
             }
         })

@@ -14,24 +14,29 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: false },
 }));
-const requireNotLoggedIn = (req, res, next) => {
-    if (req.session.user) {
-        res.redirect('/');
-    }
-    else {
-        next();
-    }
-};
-app.get('/login', requireNotLoggedIn, (req, res) => {
+app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/templates/login.html'));
 });
-app.get('/register', requireNotLoggedIn, (req, res) => {
+app.get('/register', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/templates/signup.html'));
 });
 app.get('/canvas/:id', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/templates/canvas.html'));
 });
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/templates/home.html'));
+});
 app.use(express.static(path.join(__dirname, '../public')));
+app.get('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            res.status(500).json({ message: 'Logout failed' });
+        }
+        else {
+            res.json({ message: 'Logged out' });
+        }
+    });
+});
 app.post('/submit-login', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -40,9 +45,8 @@ app.post('/submit-login', async (req, res) => {
         connection.release();
         if (rows.length > 0) {
             req.session.user = rows[0];
-            res.json({ message: 'Login successful', user: rows[0] });
-            console.log('User logged in:', rows[0]);
-            res.redirect('/');
+            res.json({ message: 'Login successful', user: { username: rows[0].username, id: rows[0].id } });
+            console.log('User logged in:', rows[0].username);
         }
         else {
             res.status(401).json({ message: 'Invalid credentials' });
@@ -50,6 +54,7 @@ app.post('/submit-login', async (req, res) => {
     }
     catch (error) {
         res.status(500).json({ message: 'Database error' });
+        console.log(error);
     }
 });
 app.post('/submit-signup', async (req, res) => {
@@ -88,6 +93,14 @@ app.get('/logout', (req, res) => {
             res.json({ message: 'Logged out' });
         }
     });
+});
+app.get("/api/checkLogedin", (req, res) => {
+    if (req.session.user) {
+        res.json({ loggedIn: true });
+    }
+    else {
+        res.json({ loggedIn: false });
+    }
 });
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
