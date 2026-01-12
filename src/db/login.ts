@@ -28,7 +28,6 @@ router.get('/logout', (req: Request, res: Response) => {
 });
 
 router.post('/api/submit-login', async (req: Request, res: Response) => {
-    console.log('Request body:', req.body);
     const { username, password } = req.body;
     
     if (!username || !password) {
@@ -37,9 +36,7 @@ router.post('/api/submit-login', async (req: Request, res: Response) => {
     }
     
     try {
-        console.log('Attempting database connection...');
         const connection = await pool.getConnection();
-        console.log('Database connection established');
         
         const [rows]: any = await connection.query(
             'SELECT * FROM db_users WHERE username = ? AND password = ?',
@@ -50,11 +47,8 @@ router.post('/api/submit-login', async (req: Request, res: Response) => {
         if (rows.length > 0) {
             req.session.user = rows[0];
             res.json({ message: 'Login successful', user: { username: rows[0].username, id: rows[0].id } });
-            console.log('Session user set to:', req.session.user);
-            console.log('User logged in:', rows[0].username);
         } else {
             res.status(401).json({ message: 'Invalid credentials' });
-            console.log('Login failed for username:', username);
         }
     } catch (error) {
         console.error('Database error details:', error);
@@ -67,7 +61,7 @@ router.post('/api/submit-signup', async (req: Request, res: Response) => {
     try {
         const connection = await pool.getConnection();
 
-        const existingUserQuery = 'SELECT * FROM db_users WHERE username = ? OR email = ?';
+        const existingUserQuery = 'SELECT * FROM users WHERE username = ? OR email = ?';
         const [existingUsers]: any = await connection.query(existingUserQuery, [username, email]);
         if (existingUsers.length > 0) {
             connection.release();
@@ -75,7 +69,7 @@ router.post('/api/submit-signup', async (req: Request, res: Response) => {
         }
         
         const [result]: any = await connection.query(
-            'INSERT INTO db_users (username, password, email) VALUES (?, ?, ?)',
+            'INSERT INTO users (username, password, email) VALUES (?, ?, ?)',
             [username, password, email]
         );
         connection.release();
@@ -87,13 +81,10 @@ router.post('/api/submit-signup', async (req: Request, res: Response) => {
 });
 
 router.get('/api/user', (req: Request, res: Response) => {
-    console.log('GET /api/user hit. Session exists:', !!(req as any).session);
     const user = (req as any).session?.user;
     if (user) {
-        console.log('Fetching user data for:', user.username ?? user);
         res.json({status:200, user });
     } else {
-        console.log('No user in session');
         res.status(401).json({status: 401, message: 'Not logged in' });
     }
 });

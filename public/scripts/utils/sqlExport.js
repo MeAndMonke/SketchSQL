@@ -29,7 +29,7 @@ export function generateSQL(nodes) {
         sql += `CREATE TABLE ${node.name} (\n`;
         const lines = [];
         node.rows.forEach((row) => {
-            let line = `  ${row.name} ${row.type}`;
+            let line = `  ${row.name} ${row.type} ${row.type == "VARCHAR" ? `(${255})` : ''}`;
             if (row.unsigned) line += ' UNSIGNED';
             if (!row.nullable) line += ' NOT NULL';
             if (row.autoIncrement) line += ' AUTO_INCREMENT';
