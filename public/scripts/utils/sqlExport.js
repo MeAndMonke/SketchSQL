@@ -54,7 +54,7 @@ export function generateSQL(nodes) {
         if (fks && fks.length > 0) {
             fks.forEach(fk => {
                 sql += ',\n';
-                sql += `  FOREIGN KEY (${fk.columnName}) REFERENCES ${fk.refTable}(${fk.refColumn})`;
+                sql += `  FOREIGN KEY (${fk.columnName}) REFERENCES ${fk.refTable}(${fk.refColumn}) ON DELETE CASCADE`;
             });
         }
         sql += '\n);\n\n';

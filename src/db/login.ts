@@ -39,13 +39,14 @@ router.post('/api/submit-login', async (req: Request, res: Response) => {
         const connection = await pool.getConnection();
         
         const [rows]: any = await connection.query(
-            'SELECT * FROM db_users WHERE username = ? AND password = ?',
+            'SELECT * FROM users WHERE username = ? AND password = ?',
             [username, password]
         );
         connection.release();
 
         if (rows.length > 0) {
-            req.session.user = rows[0];
+            const data = rows[0]
+            req.session.user = { id: data.id, username: data.username, email: data.email };
             res.json({ message: 'Login successful', user: { username: rows[0].username, id: rows[0].id } });
         } else {
             res.status(401).json({ message: 'Invalid credentials' });

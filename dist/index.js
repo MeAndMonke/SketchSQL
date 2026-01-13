@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import pool from './db/db.js';
 import loginRouter from './db/login.js';
+import projectRouter from './db/projects.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
@@ -18,6 +19,7 @@ app.use(session({
 }));
 // Routes come AFTER middleware
 app.use(loginRouter);
+app.use(projectRouter);
 app.get('/canvas/:id', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/templates/canvas.html'));
 });
