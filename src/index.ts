@@ -7,6 +7,8 @@ import { fileURLToPath } from 'url';
 import loginRouter from './db/login.js';
 import projectRouter from './db/projects.js'
 import nodeRouter from './db/canvas/nodes.js';
+import rowRouter from './db/canvas/rows.js';
+import connectionRouter from './db/canvas/connections.js';
 
 declare module 'express-session' {
   interface SessionData {
@@ -20,7 +22,6 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = 3000;
 
-// Middleware must come BEFORE routes
 app.use(express.json());
 app.use(session({
     secret: 'ejrk3gfuegyi3efyqgh3evigfugygyciuufe',
@@ -29,10 +30,12 @@ app.use(session({
     cookie: { secure: false },
 }));
 
-// routes come AFTER middleware
+// routes
 app.use(loginRouter);
 app.use(projectRouter);
 app.use(nodeRouter);
+app.use(rowRouter);
+app.use(connectionRouter);
 
 app.get('/canvas/:id', (req: Request, res: Response) => {
     res.sendFile(path.join(__dirname, '../public/templates/canvas.html'));

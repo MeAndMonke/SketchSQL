@@ -6,10 +6,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const router = Router();
 router.get('/api/getRows', async (req, res) => {
-    const canvasId = req.query.canvasId;
+    const nodeId = req.query.nodeId;
     try {
         const connection = await pool.getConnection();
-        const [rows] = await connection.query('SELECT * FROM RowEnteries WHERE nodeID = ?', [canvasId]);
+        const [rows] = await connection.query('SELECT * FROM RowEntries WHERE nodeID = ?', [nodeId]);
         connection.release();
         res.json({ rows: rows });
     }
@@ -22,7 +22,7 @@ router.post('/api/saveRow', async (req, res) => {
     const { row } = req.body;
     try {
         const connection = await pool.getConnection();
-        await connection.query(`UPDATE RowEnteries
+        await connection.query(`UPDATE RowEntries
             SET rowIndex = ?,
             name = ?,
             type = ?,

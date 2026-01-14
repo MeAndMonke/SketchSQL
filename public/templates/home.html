@@ -69,25 +69,27 @@
 
         function loadDiagrams(userId) {
             const grid = document.getElementById('diagramsGrid');
-            const diagrams = fetch(`/api/getProjects`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Diagrams data:', data);
-                    data.projects.forEach(project => {
-                        const card = document.createElement('div');
-                        card.className = 'diagram-card';
-                        card.innerHTML = `
-                            <a href="/canvas/${project.id}">
-                                <div class="diagram-preview"><img src="${project.previewUrl}" alt="Diagram Preview"></div>
-                                <div class="diagram-title">${project.title}</div>
-                            </a>
-                        `;
-                        grid.appendChild(card);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error loading diagrams:', error);
+
+            fetch(`/api/getProjects`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Diagrams data:', data);
+                data.projects.forEach(project => {
+                    const card = document.createElement('div');
+                    card.className = 'diagram-card';
+                    card.innerHTML = `
+                        <a href="/canvas/${project.id}">
+                            <div class="diagram-preview"><img src="${project.previewUrl}" alt="Diagram Preview"></div>
+                            <div class="diagram-title">${project.title}</div>
+                        </a>
+                    `;
+                    grid.appendChild(card);
                 });
+            })
+            .catch(error => {
+                console.error('Error loading diagrams:', error);
+            });
+            
         }
 
         checkLoggedIn();

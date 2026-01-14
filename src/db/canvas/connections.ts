@@ -14,8 +14,8 @@ router.post('/api/createConnection', async (req: Request, res: Response) => {
     try {
         const connectionDB = await pool.getConnection();
         const [result]: any = await connectionDB.query(
-            'INSERT INTO Connections (nodeID, targetNodeID, fromRowID, toRowID) VALUES (?, ?, ?, ?)',
-            [ connection.nodeID, connection.targetNodeID, connection.fromRowID, connection.toRowID ]
+            'INSERT INTO Connections (startID, endID, relation, controlDotX, controlDotY) VALUES (?, ?, ?, ?, ?)',
+            [ connection.startID, connection.endID, connection.relation || '1:1', Number.isFinite(connection.controlDotX) ? connection.controlDotX : 0, Number.isFinite(connection.controlDotY) ? connection.controlDotY : 0 ]
         );
         connectionDB.release();
         res.json({ message: 'Connection created', connectionId: result.insertId });
@@ -26,12 +26,12 @@ router.post('/api/createConnection', async (req: Request, res: Response) => {
 });
 
 router.get('/api/getConnections', async (req: Request, res: Response) => {
-    const nodeId = req.query.nodeId as string;
+    const rowId = req.query.rowId as string;
     try {
         const connectionDB = await pool.getConnection();
         const [rows]: any = await connectionDB.query(
             `SELECT * FROM Connections WHERE startID = ?`,
-            [ nodeId ]
+            [ rowId ]
         );
         connectionDB.release();
         res.json({ connections: rows });

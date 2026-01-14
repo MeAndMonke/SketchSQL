@@ -116,10 +116,21 @@ export class ConnectionLayer {
                     // use custom midX if provided
                     let midXc;
                     if (conn.midX !== undefined) {
-                        midXc = this.grid ? this.grid.snap(conn.midX) : conn.midX;
+                        // Safety check: if value is > 100, it's likely pixel data (old format)
+                        // If value is <= 100, it's grid coordinate data (new format)
+                        if (conn.midX > 100) {
+                            // Old pixel format - use as-is
+                            midXc = conn.midX;
+                            
+                        } else {
+                            // New grid format - convert to pixels
+                            midXc = this.grid ? conn.midX * this.grid.size : conn.midX;
+                            
+                        }
                     } else {
                         midXc = (x1c + x2c) / 2;
                         if (this.grid) midXc = this.grid.snap(midXc);
+                        
                     }
 
                     // calc stubs
@@ -139,8 +150,15 @@ export class ConnectionLayer {
                     // create path
                     let d;
                     if (conn.midY !== undefined) {
-                        // user defined midY
-                        const midYc = this.grid ? this.grid.snap(conn.midY) : conn.midY;
+                        // Safety check: if value is > 100, it's likely pixel data (old format)
+                        let midYc;
+                        if (conn.midY > 100) {
+                            // Old pixel format - use as-is
+                            midYc = conn.midY;
+                        } else {
+                            // New grid format - convert to pixels
+                            midYc = this.grid ? conn.midY * this.grid.size : conn.midY;
+                        }
                         const midY = panY + midYc * zoom;
                         d = `M ${x1} ${y1} L ${x1Stub} ${y1} L ${midX} ${y1} L ${midX} ${midY} L ${x2Stub} ${midY} L ${x2Stub} ${y2} L ${x2} ${y2}`;
                     } else {
@@ -185,7 +203,15 @@ export class ConnectionLayer {
                     const controlDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     controlDot.setAttribute('cx', midX);
                     if (conn.midY !== undefined) {
-                        const midYc = conn.midY;
+                        // Safety check: if value is > 100, it's likely pixel data (old format)
+                        let midYc;
+                        if (conn.midY > 100) {
+                            // Old pixel format
+                            midYc = conn.midY;
+                        } else {
+                            // New grid format - convert to pixels
+                            midYc = this.grid ? conn.midY * this.grid.size : conn.midY;
+                        }
                         const midY = panY + midYc * zoom;
                         controlDot.setAttribute('cy', midY);
                     } else {

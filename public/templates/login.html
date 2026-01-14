@@ -58,9 +58,6 @@
         .then(data => {
             console.log('Success:', data);
             if (data.message === 'Login successful') {
-                sessionStorage.setItem('username', username);
-                console.log(data.user.id);
-                sessionStorage.setItem('userId', data.user.id);
                 window.location.href = '/';
             }
         })

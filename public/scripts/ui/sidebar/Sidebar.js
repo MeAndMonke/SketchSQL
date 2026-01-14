@@ -31,7 +31,5 @@ export class Sidebar {
         });
 
         attachEventListeners(this);
-        // trigger any downstream sync
-        this.nodeManager.setNodes(this.nodeManager.getNodes());
     }
 }

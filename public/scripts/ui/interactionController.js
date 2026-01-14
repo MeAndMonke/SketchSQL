@@ -161,10 +161,17 @@ export class InteractionController {
             const canvasCoords = this.viewport.toCanvasCoords(e.clientX, e.clientY);
             let midX = canvasCoords.x;
             let midY = canvasCoords.y;
+            
+            // Always convert to grid coordinates
+            const gridSize = this.grid ? this.grid.size : 20;
             if (this.grid) {
                 midX = this.grid.snap(midX);
                 midY = this.grid.snap(midY);
             }
+            // Convert pixels to grid cell positions
+            midX = midX / gridSize;
+            midY = midY / gridSize;
+            
             this.model.updateConnectionMidPoint(this.draggingLine.ref, midX, midY);
             return;
         }

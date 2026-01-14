@@ -40,8 +40,10 @@
     import { typeOptions } from "../scripts/config/types.js";
     import { generateSQL, downloadSQL } from "../scripts/utils/sqlExport.js";
     const sidebarElement = document.querySelector('.sidebar');
+    const canvasId = parseInt(window.location.pathname.split('/').pop(), 10) || 0;
 
-    const nodeManager = new NodeManager();
+    const nodeManager = new NodeManager(canvasId);
+    await nodeManager.init();
     
     const sidebar = new Sidebar({ sidebarElement, nodeManager, typeOptions, colorPalette });
 
@@ -49,8 +51,8 @@
     if (addNodeBtn) {
         addNodeBtn.addEventListener('click', () => {
             const nodes = nodeManager.getNodes();
-            const newId = Math.max(0, ...nodes.map(n => n.id || 0)) + 1;
-            nodeManager.addNode({ id: newId, name: `Node${newId}`, rows: [] });
+            const newIndex = nodes.length + 1;
+            nodeManager.addNode({ name: `Node${newIndex}`, rows: [] });
             sidebar.render();
         });
     }

@@ -10,12 +10,12 @@ const __dirname = path.dirname(__filename);
 const router = Router();
 
 router.get('/api/getRows', async (req: Request, res: Response) => {
-    const canvasId = req.query.canvasId as string;
+    const nodeId = req.query.nodeId as string;
     try {
         const connection = await pool.getConnection();
         const [rows]: any = await connection.query(
-            'SELECT * FROM RowEnteries WHERE nodeID = ?',
-            [ canvasId ]
+            'SELECT * FROM RowEntries WHERE nodeID = ?',
+            [ nodeId ]
         );
         connection.release();
         res.json({ rows: rows });
@@ -29,7 +29,7 @@ router.post('/api/saveRow', async (req: Request, res: Response) => {
     const { row } = req.body;
     try {
         const connection = await pool.getConnection();
-        await connection.query(`UPDATE RowEnteries
+        await connection.query(`UPDATE RowEntries
             SET rowIndex = ?,
             name = ?,
             type = ?,

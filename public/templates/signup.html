@@ -32,12 +32,12 @@
             const response = await fetch('/api/user');
             const data = await response.json();
             
-            // If already logged in on server, redirect to home
+            // if already logged in redirect to home
             if (data.status === 200 && data.user) {
                 window.location.href = '/';
             }
         } catch (error) {
-            // Not logged in, stay on login page
+            // not logged in stay on login page
             console.log('Not logged in');
         }
     }
