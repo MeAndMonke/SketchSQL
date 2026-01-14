@@ -2,9 +2,9 @@ import express from 'express';
 import session from 'express-session';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import pool from './db/db.js';
 import loginRouter from './db/login.js';
 import projectRouter from './db/projects.js';
+import nodeRouter from './db/canvas/nodes.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
@@ -17,9 +17,10 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: false },
 }));
-// Routes come AFTER middleware
+// routes come AFTER middleware
 app.use(loginRouter);
 app.use(projectRouter);
+app.use(nodeRouter);
 app.get('/canvas/:id', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/templates/canvas.html'));
 });

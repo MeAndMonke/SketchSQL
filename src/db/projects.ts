@@ -16,8 +16,8 @@ router.get('/api/createProject', async (req:Request, res: Response) => {
     try {
         const connection = await pool.getConnection();
         const [result]: any = await connection.query(
-            'INSERT INTO Canvas (ownerID) VALUES (?)',
-            [ userId ]
+            'INSERT INTO Canvas (ownerID, title, description) VALUES (?, ?, ?)',
+            [ userId, "New Project", "" ]
         );
         connection.release();
         res.json({ message: 'Project created', projectId: result.insertId });

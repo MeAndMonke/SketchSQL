@@ -21,10 +21,10 @@
             </div>
             
             <nav class="sidebar-menu">
-                <div class="menu-item">My Diagrams</div>
-                <div class="menu-item">Shared With Me</div>
-                <div class="menu-item">Create New Folder</div>
-                <div class="menu-item">My Favorites</div>
+                <div class="menu-item" id="myDiagrams">My Diagrams</div>
+                <div class="menu-item" id="sharedWithMe">Shared With Me</div>
+                <div class="menu-item" id="createNewFolder">Create New Folder</div>
+                <div class="menu-item" id="myFavorites">My Favorites</div>
             </nav>
         </aside>
 
@@ -42,14 +42,14 @@
                 
                 console.log('User data:', data);
                 
-                // If logged in, show the home page content
+                // if logged in show the home page content
                 if (data.status === 200 && data.user) {
                     const username = data.user.username;
                     const userId = data.user.id;
                     
                     console.log('Setting profile images for:', username);
                     
-                    // Using ui-avatars.com which is more reliable
+                    // Using ui-avatars.com
                     const avatarUrl = `https://ui-avatars.com/api/?name=${username}&background=random&size=128`;
                     
                     document.getElementById('profileImage').src = avatarUrl;
@@ -58,7 +58,7 @@
                     
                     loadDiagrams(userId);
                 } else {
-                    // Not logged in, redirect to login page
+                    // not logged in redirect to login page
                     window.location.href = '/login';
                 }
             } catch (error) {
@@ -69,15 +69,25 @@
 
         function loadDiagrams(userId) {
             const grid = document.getElementById('diagramsGrid');
-            for (let i = 0; i < 8; i++) {
-                const card = document.createElement('div');
-                card.className = 'diagram-card';
-                card.innerHTML = `
-                    <div class="diagram-preview">Preview Image</div>
-                    <div class="diagram-title">Diagram title</div>
-                `;
-                grid.appendChild(card);
-            }
+            const diagrams = fetch(`/api/getProjects`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Diagrams data:', data);
+                    data.projects.forEach(project => {
+                        const card = document.createElement('div');
+                        card.className = 'diagram-card';
+                        card.innerHTML = `
+                            <a href="/canvas/${project.id}">
+                                <div class="diagram-preview"><img src="${project.previewUrl}" alt="Diagram Preview"></div>
+                                <div class="diagram-title">${project.title}</div>
+                            </a>
+                        `;
+                        grid.appendChild(card);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading diagrams:', error);
+                });
         }
 
         checkLoggedIn();

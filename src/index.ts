@@ -4,7 +4,6 @@ import type { Request, Response } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import pool from './db/db.js';
 import loginRouter from './db/login.js';
 import projectRouter from './db/projects.js'
 import nodeRouter from './db/canvas/nodes.js';

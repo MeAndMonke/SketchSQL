@@ -1,45 +1,48 @@
 import { Router } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import pool from '../db/db.js';
-import { connect } from 'http2';
+import pool from '../../db/db.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const router = Router();
-router.get('/api/createProject', async (req, res) => {
-    const userId = req.session.user.id;
+router.get('/api/getNodes', async (req, res) => {
+    const canvasId = req.query.canvasId;
     try {
         const connection = await pool.getConnection();
-        const [result] = await connection.query('INSERT INTO Canvas (ownerID, title, description) VALUES (?, ?, ?)', [userId, "New Project", ""]);
+        const [rows] = await connection.query('SELECT * FROM Node WHERE canvasID = ?', [canvasId]);
         connection.release();
-        res.json({ message: 'Project created', projectId: result.insertId });
+        res.json({ nodes: rows });
     }
     catch (error) {
         console.error('Database error details:', error);
         res.status(500).json({ message: 'Database error' });
     }
 });
-router.get('/api/getProjects', async (req, res) => {
-    const userId = req.session.user.id;
+router.post('/api/saveNode', async (req, res) => {
+    const { node } = req.body;
     try {
         const connection = await pool.getConnection();
-        const [rows] = await connection.query('SELECT * FROM Canvas WHERE ownerID = ?', [userId]);
-        console.log(rows);
+        await connection.query(`UPDATE Node 
+            SET title = ?, 
+            nodeIndex = ?, 
+            posX = ?,
+            posY = ? 
+            WHERE id = ? AND canvasID = ?`, [node.title, node.nodeIndex, node.posX, node.posY, node.id, node.canvasId]);
         connection.release();
-        res.json({ projects: rows });
+        res.json({ message: 'Nodes saved successfully' });
     }
     catch (error) {
         console.error('Database error details:', error);
         res.status(500).json({ message: 'Database error' });
     }
 });
-router.post('/api/deleteProject', async (req, res) => {
-    const { projectId } = req.body;
+router.post('/api/deleteNode', async (req, res) => {
+    const { nodeId } = req.body;
     try {
         const connection = await pool.getConnection();
-        await connection.query('DELETE FROM Canvas WHERE id = ?', [projectId]);
+        await connection.query('DELETE FROM Node WHERE id = ?', [nodeId]);
         connection.release();
-        res.json({ message: 'Project deleted successfully' });
+        res.json({ message: 'Node deleted successfully' });
     }
     catch (error) {
         console.error('Database error details:', error);
@@ -47,4 +50,4 @@ router.post('/api/deleteProject', async (req, res) => {
     }
 });
 export default router;
-//# sourceMappingURL=projects.js.map
+//# sourceMappingURL=nodes.js.map
