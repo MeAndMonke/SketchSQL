@@ -74,14 +74,6 @@ export class InteractionController {
     }
 
     _onMouseDown(e) {
-        // right button for panning
-        if (e.button === 2) {
-            e.preventDefault();
-            this.viewport.beginPan(e.clientX, e.clientY);
-            return;
-        }
-        if (e.button !== 0) return;
-
         // check for connection dot
         let connectionDot = e.target.closest('.connection-dot');
         if (!connectionDot) {
@@ -139,10 +131,19 @@ export class InteractionController {
                 this.dragOffset = { x: x - nd.x, y: y - nd.y };
                 target.style.zIndex = '1000';
                 this.nodes.setDraggingId(nodeId);
+                return;
             }
         } else {
             this.nodes.select(null);
         }
+
+        // left button for panning
+        if (e.button === 0) {
+            e.preventDefault();
+            this.viewport.beginPan(e.clientX, e.clientY);
+            return;
+        }
+        if (e.button !== 0) return;
     }
 
     _onMouseMove(e) {
@@ -195,7 +196,7 @@ export class InteractionController {
     }
 
     _onMouseUp(e) {
-        if (this.viewport.isPanning && e.button === 2) {
+        if (this.viewport.isPanning && e.button === 0) {
             this.viewport.endPan();
             return;
         }

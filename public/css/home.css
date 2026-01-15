@@ -2,6 +2,8 @@
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
+    color: var(--text-light);
+    text-decoration: none;
 }
 
 :root {
@@ -142,6 +144,8 @@ body {
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
     border: 1px solid #444;
+    color: var(--text-light);
+    text-decoration: none;
 }
 
 .diagram-card:hover {
