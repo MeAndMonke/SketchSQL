@@ -106,9 +106,7 @@ router.get('/api/canvas/:canvasId', async (req, res) => {
 });
 router.post('/api/canvas/:canvasId/sync', async (req, res) => {
     const canvasId = Number(req.params.canvasId);
-    console.log('Syncing canvas id:', canvasId);
     const { nodes } = req.body;
-    console.log('Received nodes for sync:', nodes);
     if (!Number.isFinite(canvasId)) {
         return res.status(400).json({ message: 'Invalid canvas id' });
     }

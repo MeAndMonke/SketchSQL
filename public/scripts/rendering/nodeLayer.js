@@ -88,8 +88,7 @@ export class NodeLayer {
 
     _onKeyDown(e) {
         if (this.keyEventDone) return;
-        if (e.key === 'Delete' || e.key === 'Backspace') {
-            console.log('Delete key pressed, selected node id:', this.selectedId);
+        if (e.key === 'Delete') {
             if (this.selectedId !== null) {
                 this.nodeManager.removeNode(this.selectedId);
                 this.select(null);

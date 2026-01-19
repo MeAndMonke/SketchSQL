@@ -38,7 +38,6 @@ router.get('/api/getProjects', async (req: Request, res: Response) => {
             'SELECT * FROM Canvas WHERE ownerID = ?',
             [ userId ]
         );
-        console.log(rows)
         connection.release();
         res.json({ projects: rows });
     } catch (error) {

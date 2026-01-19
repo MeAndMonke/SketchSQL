@@ -26,7 +26,6 @@ router.get('/api/getProjects', async (req, res) => {
     try {
         const connection = await pool.getConnection();
         const [rows] = await connection.query('SELECT * FROM Canvas WHERE ownerID = ?', [userId]);
-        console.log(rows);
         connection.release();
         res.json({ projects: rows });
     }

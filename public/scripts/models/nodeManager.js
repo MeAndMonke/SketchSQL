@@ -35,7 +35,6 @@ export class NodeManager {
     }
 
     removeNode(nodeId) {
-        console.log('Removing node with id:', nodeId);
         this.nodes = this.nodes.filter(n => n.id !== nodeId);
         this._queueSave();
     }

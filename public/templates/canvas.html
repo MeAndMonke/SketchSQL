@@ -58,24 +58,13 @@
             sidebar.render();
         });
     }
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Delete' || event.key === 'Backspace') {
-            const selectedNode = nodeManager.getNodes().find(node => node.isSelected);
-            if (selectedNode) {
-                nodeManager.removeNode(selectedNode.id);
-                sidebar.render();
-            }
-        }
-    });
-
     const canvasElement = document.getElementById('canvas');
     const canvas = new Canvas(canvasElement, nodeManager);
 
     sidebar.render();
     canvas.syncWithNodeManager();
     
-    // Export SQL functionality
+    // export SQL functionality
     const exportSQLBtn = document.querySelector('#exportSQL');
     if (exportSQLBtn) {
         exportSQLBtn.addEventListener('click', () => {

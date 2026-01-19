@@ -862,8 +862,6 @@ SketchSQL transforms the complex task of writing SQL queries into an intuitive v
 
 **Acceptance Criteria:**
 - Ctrl+S: Save project
-- Ctrl+Z: Undo
-- Ctrl+Y: Redo
 - Ctrl+C: Copy
 - Ctrl+V: Paste
 - Delete: Delete selected
