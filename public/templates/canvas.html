@@ -47,6 +47,8 @@
     
     const sidebar = new Sidebar({ sidebarElement, nodeManager, typeOptions, colorPalette });
 
+    nodeManager.sidebar = sidebar;
+
     const addNodeBtn = document.querySelector('#addNode');
     if (addNodeBtn) {
         addNodeBtn.addEventListener('click', () => {
@@ -56,6 +58,16 @@
             sidebar.render();
         });
     }
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Delete' || event.key === 'Backspace') {
+            const selectedNode = nodeManager.getNodes().find(node => node.isSelected);
+            if (selectedNode) {
+                nodeManager.removeNode(selectedNode.id);
+                sidebar.render();
+            }
+        }
+    });
 
     const canvasElement = document.getElementById('canvas');
     const canvas = new Canvas(canvasElement, nodeManager);

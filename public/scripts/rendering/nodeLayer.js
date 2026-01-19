@@ -1,13 +1,22 @@
 import { colorPalette, getColorForNode } from '../config/colors.js';
 
 export class NodeLayer {
-    constructor(transformContainer, nodeManager) {
+    constructor(transformContainer, nodeManager, sidebar) {
         this.container = transformContainer;
         this.nodeManager = nodeManager;
+        this.sidebar = sidebar
         this.nodes = new Map();
         this.selectedId = null;
         this.draggingId = null;
         this.colorPalette = colorPalette;
+
+        this.keyEventDone = false;
+        this._keyEvents();
+    }
+
+    _keyEvents() {
+        document.addEventListener('keydown', (e) => this._onKeyDown(e));
+        document.addEventListener('keyup', (e) => this._onKeyUp(e));
     }
 
     setDraggingId(idOrNull) {
@@ -75,6 +84,23 @@ export class NodeLayer {
                 }
             }
         });
+    }
+
+    _onKeyDown(e) {
+        if (this.keyEventDone) return;
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            console.log('Delete key pressed, selected node id:', this.selectedId);
+            if (this.selectedId !== null) {
+                this.nodeManager.removeNode(this.selectedId);
+                this.select(null);
+                this.sync();
+            }
+        }
+        this.keyEventDone = true;
+    }
+
+    _onKeyUp(e) {
+        this.keyEventDone = false;
     }
 
     _createNodeElement(node, nd) {

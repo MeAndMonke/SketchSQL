@@ -106,7 +106,9 @@ router.get('/api/canvas/:canvasId', async (req, res) => {
 });
 router.post('/api/canvas/:canvasId/sync', async (req, res) => {
     const canvasId = Number(req.params.canvasId);
+    console.log('Syncing canvas id:', canvasId);
     const { nodes } = req.body;
+    console.log('Received nodes for sync:', nodes);
     if (!Number.isFinite(canvasId)) {
         return res.status(400).json({ message: 'Invalid canvas id' });
     }
@@ -116,6 +118,11 @@ router.post('/api/canvas/:canvasId/sync', async (req, res) => {
     const db = await pool.getConnection();
     try {
         await db.beginTransaction();
+        // 1. Get all existing node IDs for this canvas
+        const [existingNodeRows] = await db.query('SELECT id FROM Node WHERE canvasID = ?', [canvasId]);
+        const existingNodeIds = new Set(existingNodeRows.map((row) => row.id));
+        // 2. Track which node IDs are kept
+        const keptNodeIds = new Set();
         const nodeIdMap = new Map();
         const rowIdMap = new Map();
         const nodePosMap = new Map(); // Track node positions
@@ -126,12 +133,14 @@ router.post('/api/canvas/:canvasId/sync', async (req, res) => {
             const posX = node.canvasPos?.x ?? node.posX ?? 80;
             const posY = node.canvasPos?.y ?? node.posY ?? 80;
             let nodeId = node.id;
-            if (nodeId && nodeId > 0) {
+            if (nodeId && nodeId > 0 && existingNodeIds.has(nodeId)) {
                 await db.query('UPDATE Node SET title = ?, nodeIndex = ?, posX = ?, posY = ? WHERE id = ? AND canvasID = ?', [title, nodeIndex, posX, posY, nodeId, canvasId]);
+                keptNodeIds.add(nodeId);
             }
             else {
                 const [result] = await db.query('INSERT INTO Node (canvasID, title, nodeIndex, posX, posY) VALUES (?, ?, ?, ?, ?)', [canvasId, title, nodeIndex, posX, posY]);
                 nodeId = result.insertId;
+                keptNodeIds.add(nodeId);
             }
             nodeIdMap.set(node.id ?? `new-${i}`, nodeId);
             nodePosMap.set(nodeId, { x: posX, y: posY });
@@ -170,6 +179,18 @@ router.post('/api/canvas/:canvasId/sync', async (req, res) => {
                 await db.query('DELETE FROM RowEntries WHERE id IN (?)', [deleteIds]);
             }
             rowIdMap.set(nodeId, rowIdsForNode);
+        }
+        // 3. Delete nodes that are not kept
+        const nodesToDelete = Array.from(existingNodeIds).filter((id) => !keptNodeIds.has(id));
+        if (nodesToDelete.length > 0) {
+            // Delete related rows and connections first (to maintain referential integrity)
+            const [rowsToDelete] = await db.query('SELECT id FROM RowEntries WHERE nodeID IN (?)', [nodesToDelete]);
+            const rowIdsToDelete = rowsToDelete.map((r) => r.id);
+            if (rowIdsToDelete.length > 0) {
+                await db.query('DELETE FROM Connections WHERE startID IN (?)', [rowIdsToDelete]);
+                await db.query('DELETE FROM RowEntries WHERE id IN (?)', [rowIdsToDelete]);
+            }
+            await db.query('DELETE FROM Node WHERE id IN (?)', [nodesToDelete]);
         }
         const nodeIds = Array.from(nodeIdMap.values());
         const allRowIds = Array.from(rowIdMap.values()).flat().filter(Boolean);

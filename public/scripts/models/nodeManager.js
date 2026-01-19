@@ -5,6 +5,7 @@ export class NodeManager {
         this.canvasId = canvasId;
         this.nodes = [];
         this._saveTimer = null;
+        this.sidebar = null;
     }
 
     async init() {
@@ -34,6 +35,7 @@ export class NodeManager {
     }
 
     removeNode(nodeId) {
+        console.log('Removing node with id:', nodeId);
         this.nodes = this.nodes.filter(n => n.id !== nodeId);
         this._queueSave();
     }
@@ -89,5 +91,6 @@ export class NodeManager {
                 canvasPos: node.canvasPos || { x: node.posX || 80, y: node.posY || 80 },
             }));
         }
+        this.sidebar.render();
     }
 }

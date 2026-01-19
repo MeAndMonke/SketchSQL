@@ -11,6 +11,8 @@ export class InteractionController {
         this.grid = grid;
         this.menu = new PopupMenu();
 
+        this.keyEventDone = false;
+
         this.draggingNode = null; // id
         this.dragOffset = { x: 0, y: 0 };
         this.drawingConnection = false;
