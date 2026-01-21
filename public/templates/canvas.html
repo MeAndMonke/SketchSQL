@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,10 +14,12 @@
     <link rel="stylesheet" href="../css/canvas/modal.css">
     <title>Draw SQL</title>
 </head>
+
 <body>
     <div class="flex-column container">
 
         <div class="topBar">
+            <a href="/">Home</a>
             <button id="exportSQL">Export as SQL</button>
         </div>
 
@@ -25,6 +28,11 @@
             </div>
             <div class="mainScreen">
                 <button id="addNode">+</button>
+                <div class="zoomContainer">
+                    <button>+</button>
+                    <h2>100%</h2>
+                    <button>-</button>
+                </div>
                 <div id="canvas"></div>
             </div>
         </div>
@@ -73,5 +81,4 @@
         });
     }
 </script>
-
 </html>

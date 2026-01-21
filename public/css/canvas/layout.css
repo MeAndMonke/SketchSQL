@@ -8,10 +8,12 @@
     gap: 10px;
 }
 
-.topBar button {
+.topBar button,
+.topBar a {
     background-color: #5b9dd9;
     color: white;
     border: none;
+    text-decoration: none;
     border-radius: 6px;
     padding: 8px 12px;
     margin-left: 10px;
@@ -20,7 +22,8 @@
     transition: background-color 0.2s;
 }
 
-.topBar button:hover {
+.topBar button:hover,
+.topBar a:hover {
     background-color: #4a8bc2;
 }
 

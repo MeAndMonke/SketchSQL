@@ -23,6 +23,40 @@
     cursor: pointer;
 }
 
+.zoomContainer {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: #242424;
+    border-radius: 8px;
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 3;
+}
+
+.zoomContainer button {
+    background-color: #5b9dd9;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.zoomContainer button:hover {
+    background-color: #4a8bc2;
+}
+
+.zoomContainer h2 {
+    color: white;
+    margin: 0;
+    font-size: 28px;
+}
+
 /* Grid background on the transform container */
 .canvas-transform-container {
     --grid-size: 20px;

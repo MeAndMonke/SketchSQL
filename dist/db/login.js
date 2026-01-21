@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import bcrypt from 'bcrypt';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import pool from '../db/db.js';
@@ -29,12 +30,18 @@ router.post('/api/submit-login', async (req, res) => {
     }
     try {
         const connection = await pool.getConnection();
-        const [rows] = await connection.query('SELECT * FROM users WHERE username = ? AND password = ?', [username, password]);
+        const [rows] = await connection.query('SELECT * FROM users WHERE username = ?', [username]);
         connection.release();
         if (rows.length > 0) {
-            const data = rows[0];
-            req.session.user = { id: data.id, username: data.username, email: data.email };
-            res.json({ message: 'Login successful', user: { username: rows[0].username, id: rows[0].id } });
+            const user = rows[0];
+            const passwordMatch = await bcrypt.compare(password, user.password);
+            if (passwordMatch) {
+                req.session.user = { id: user.id, username: user.username, email: user.email };
+                res.json({ message: 'Login successful', user: { username: user.username, id: user.id } });
+            }
+            else {
+                res.status(401).json({ message: 'Invalid credentials' });
+            }
         }
         else {
             res.status(401).json({ message: 'Invalid credentials' });
@@ -55,7 +62,8 @@ router.post('/api/submit-signup', async (req, res) => {
             connection.release();
             return res.status(409).json({ message: 'Username or email already exists' });
         }
-        const [result] = await connection.query('INSERT INTO users (username, password, email) VALUES (?, ?, ?)', [username, password, email]);
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const [result] = await connection.query('INSERT INTO users (username, password, email) VALUES (?, ?, ?)', [username, hashedPassword, email]);
         connection.release();
         res.json({ message: 'Signup successful', userId: result.insertId });
     }
