@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/canvas/base.css">
+    <link rel="stylesheet" href="../css/canvas/layout.css">
+    <link rel="stylesheet" href="../css/canvas/canvas.css">
+    <link rel="stylesheet" href="../css/canvas/node.css">
+    <link rel="stylesheet" href="../css/canvas/row.css">
+    <link rel="stylesheet" href="../css/canvas/connections.css">
+    <link rel="stylesheet" href="../css/canvas/sidebar.css">
+    <link rel="stylesheet" href="../css/canvas/modal.css">
+    <title>Draw SQL</title>
+</head>
+
+<body>
+    <div class="flex-column container">
+
+        <div class="topBar">
+            <a href="/">Home</a>
+            <button id="exportSQL">Export as SQL</button>
+        </div>
+
+        <div class="flex-row container">
+            <div class="sidebar">
+            </div>
+            <div class="mainScreen">
+                <button id="addNode">+</button>
+                <div class="zoomContainer">
+                    <button>+</button>
+                    <h2>100%</h2>
+                    <button>-</button>
+                </div>
+                <div id="canvas"></div>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+<script type="module">
+    import { NodeManager } from "../scripts/models/nodeManager.js";
+    import { Sidebar } from "../scripts/ui//sidebar/Sidebar.js";
+    import { Canvas } from "../scripts/core/canvas.js";
+    import { colorPalette } from "../scripts/config/colors.js";
+    import { typeOptions } from "../scripts/config/types.js";
+    import { generateSQL, downloadSQL } from "../scripts/utils/sqlExport.js";
+    const sidebarElement = document.querySelector('.sidebar');
+    const canvasId = parseInt(window.location.pathname.split('/').pop(), 10) || 0;
+
+    const nodeManager = new NodeManager(canvasId);
+    await nodeManager.init();
+    
+    const sidebar = new Sidebar({ sidebarElement, nodeManager, typeOptions, colorPalette });
+
+    nodeManager.sidebar = sidebar;
+
+    const addNodeBtn = document.querySelector('#addNode');
+    if (addNodeBtn) {
+        addNodeBtn.addEventListener('click', () => {
+            const nodes = nodeManager.getNodes();
+            const newIndex = nodes.length + 1;
+            nodeManager.addNode({ name: `Node${newIndex}`, rows: [] });
+            sidebar.render();
+        });
+    }
+    const canvasElement = document.getElementById('canvas');
+    const canvas = new Canvas(canvasElement, nodeManager);
+
+    sidebar.render();
+    canvas.syncWithNodeManager();
+    
+    // export SQL functionality
+    const exportSQLBtn = document.querySelector('#exportSQL');
+    if (exportSQLBtn) {
+        exportSQLBtn.addEventListener('click', () => {
+            const sql = generateSQL(nodeManager.getNodes());
+            downloadSQL(sql);
+        });
+    }
+</script>
+</html>

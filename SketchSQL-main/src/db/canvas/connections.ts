@@ -1,0 +1,57 @@
+import { Router } from 'express';
+import type { Request, Response } from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import pool from '../../db/db.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const router = Router();
+
+router.post('/api/createConnection', async (req: Request, res: Response) => {
+    const { connection } = req.body;
+    try {
+        const connectionDB = await pool.getConnection();
+        const [result]: any = await connectionDB.query(
+            'INSERT INTO Connections (startID, endID, relation, controlDotX, controlDotY) VALUES (?, ?, ?, ?, ?)',
+            [ connection.startID, connection.endID, connection.relation || '1:1', Number.isFinite(connection.controlDotX) ? connection.controlDotX : 0, Number.isFinite(connection.controlDotY) ? connection.controlDotY : 0 ]
+        );
+        connectionDB.release();
+        res.json({ message: 'Connection created', connectionId: result.insertId });
+    } catch (error) {
+        console.error('Database error details:', error);
+        res.status(500).json({ message: 'Database error' });
+    }
+});
+
+router.get('/api/getConnections', async (req: Request, res: Response) => {
+    const rowId = req.query.rowId as string;
+    try {
+        const connectionDB = await pool.getConnection();
+        const [rows]: any = await connectionDB.query(
+            `SELECT * FROM Connections WHERE startID = ?`,
+            [ rowId ]
+        );
+        connectionDB.release();
+        res.json({ connections: rows });
+    } catch (error) {
+        console.error('Database error details:', error);
+        res.status(500).json({ message: 'Database error' });
+    }
+});
+
+router.post('/api/deleteConnection', async (req: Request, res: Response) => {
+    const { connectionId } = req.body;
+    try {
+        const connectionDB = await pool.getConnection();
+        await connectionDB.query('DELETE FROM Connections WHERE id = ?', [ connectionId ]);
+        connectionDB.release();
+        res.json({ message: 'Connection deleted successfully' });
+    } catch (error) {
+        console.error('Database error details:', error);
+        res.status(500).json({ message: 'Database error' });
+    }
+});
+
+export default router;

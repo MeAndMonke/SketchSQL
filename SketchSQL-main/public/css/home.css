@@ -1,0 +1,285 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    color: var(--text-light);
+    text-decoration: none;
+}
+
+:root {
+    --top-bar-height: 75px;
+    --sidebar-width: 290px;
+    --bg-dark: #3a3a3a;
+    --bg-darker: #2d2d2d;
+    --text-light: #ffffff;
+    --accent-gray: #555555;
+}
+
+body {
+    background-color: #3a3a3a;
+    color: var(--text-light);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Top Bar */
+.topbar {
+    background-color: #2d2d2d;
+    height: var(--top-bar-height);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 30px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+}
+
+.profileImage {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid #555555;
+}
+
+.profileImage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Main Container */
+.main-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--bg-darker);
+    border-right: 1px solid #444;
+    padding: 20px 0;
+    overflow-y: auto;
+}
+
+.profile-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #444;
+    margin-bottom: 20px;
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 15px;
+    border: 2px solid #555555;
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-name {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Sidebar Menu */
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-item {
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.menu-item:hover {
+    background-color: #404040;
+    border-left-color: #555555;
+}
+
+.menu-item:active {
+    background-color: #454545;
+}
+
+/* Content Area */
+.content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    background-color: var(--bg-dark);
+}
+
+/* Diagrams Grid */
+.diagrams-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+}
+
+.diagram-card {
+    position: relative;
+    background-color: var(--bg-darker);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #444;
+    color: var(--text-light);
+    text-decoration: none;
+}
+
+.diagram-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.diagram-preview {
+    width: 100%;
+    aspect-ratio: 1;
+    background-color: #d0d0d0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 14px;
+    border-radius: 8px 8px 0 0;
+}
+
+.diagram-title {
+    padding: 15px;
+    text-align: center;
+    font-size: 14px;
+    background-color: var(--bg-darker);
+    border-top: 1px solid #444;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.delete-diagram-button {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgb(184, 0, 0);
+    border: none;
+    border-radius: 4px;
+    color: white;
+    padding: 5px;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+}
+
+.delete-diagram-button:hover {
+    background: rgb(255, 0, 0);
+}
+
+.add-diagram-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: var(--text-light);
+    background-color: var(--bg-darker);
+    border: 2px dashed #555555;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.add-diagram-form {
+    display: none;
+    position: fixed;
+    width: max(250px, 25%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+    background-color: var(--bg-darker);
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    z-index: 901;
+}
+
+.add-diagram-form-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 900;
+}
+
+.add-diagram-form input[type="text"] {
+    padding: 10px;
+    border: 1px solid #555555;
+    width: calc(100% - 22px);
+    border-radius: 5px;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    margin-top: 2px;
+    margin-bottom: 20px;
+}
+
+.add-diagram-form button {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #555555;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-diagram-header {
+    font-size: 18px;
+    margin-bottom: 10px;
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-darker);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--accent-gray);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #777777;
+}

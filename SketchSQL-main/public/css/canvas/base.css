@@ -1,0 +1,50 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+::-webkit-scrollbar-thumb {
+    background: #555555;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #777777;
+}
+
+:root {
+    --top-bar-height: 75px;
+    --sidebar-width: 400px;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+input {
+    background-color: #303030;
+    color: white;
+}
+
+option {
+    background-color: #303030;
+    color: white;
+}
+
+select {
+    background-color: #303030;
+    color: white;
+}

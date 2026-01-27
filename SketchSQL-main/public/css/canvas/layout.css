@@ -1,0 +1,44 @@
+.topBar {
+    width: 100vw;
+    height: var(--top-bar-height);
+    background-color: #242424;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.topBar button,
+.topBar a {
+    background-color: #5b9dd9;
+    color: white;
+    border: none;
+    text-decoration: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-left: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.topBar button:hover,
+.topBar a:hover {
+    background-color: #4a8bc2;
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    height: calc(100vh - var(--top-bar-height));
+    background-color: #242424;
+    overflow-y: scroll;
+    color: white;
+}
+
+.mainScreen {
+    height: calc(100vh - var(--top-bar-height));
+    width: calc(100vw - var(--sidebar-width));
+    background-color: #2c2c2c;
+    overflow: hidden;
+    position: relative;
+}
