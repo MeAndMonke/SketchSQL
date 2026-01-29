@@ -10,6 +10,9 @@ const __dirname = path.dirname(__filename);
 const router = Router();
 
 async function loadCanvasState(db: any, canvasId: number) {
+    const nodeMap = new Map<number, any>();
+    const rowIdToIndex = new Map<number, { nodeId: number, rowIndex: number }>();
+    
     const [nodeRows]: any = await db.query(
         'SELECT id, title, nodeIndex, posX, posY FROM Node WHERE canvasID = ? ORDER BY nodeIndex ASC',
         [canvasId]
@@ -32,9 +35,6 @@ async function loadCanvasState(db: any, canvasId: number) {
             );
         }
     }
-
-    const nodeMap = new Map<number, any>();
-    const rowIdToIndex = new Map<number, { nodeId: number, rowIndex: number }>();
 
     nodeRows.forEach((row: any, idx: number) => {
         nodeMap.set(row.id, {
