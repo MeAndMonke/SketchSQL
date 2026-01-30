@@ -1,10 +1,12 @@
 export function makeEditable(sidebar) {
+    // setup editable fields for row names and types
     const { sidebarElement, typeOptions, nodeManager } = sidebar;
     sidebarElement.querySelectorAll('.rowName, .rowType').forEach(element => {
         element.addEventListener('click', (e) => {
             e.stopPropagation();
             if (element.tagName !== 'H4') return;
 
+            // prepare for editing
             const currentText = element.textContent;
             const isTypeField = element.classList.contains('rowType');
             const row = element.closest('.sidebarRow');
@@ -14,6 +16,7 @@ export function makeEditable(sidebar) {
             const originalElement = element;
             let inputElement;
 
+            // create input or select
             if (isTypeField) {
                 inputElement = document.createElement('select');
                 inputElement.className = originalElement.className;
@@ -34,9 +37,11 @@ export function makeEditable(sidebar) {
                 inputElement.style.padding = '5px';
             }
 
+            // replace and focus
             originalElement.replaceWith(inputElement);
             inputElement.focus();
 
+            // handle saving
             let saved = false;
             if (!isTypeField) {
                 inputElement.select();
@@ -44,6 +49,7 @@ export function makeEditable(sidebar) {
                 inputElement.click();
             }
 
+            // save function
             const saveEdit = () => {
                 if (!saved && inputElement.parentElement) {
                     saved = true;
@@ -60,6 +66,7 @@ export function makeEditable(sidebar) {
                 }
             };
 
+            // event listeners for saving
             inputElement.addEventListener('blur', saveEdit);
             inputElement.addEventListener('change', saveEdit);
             if (!isTypeField) {

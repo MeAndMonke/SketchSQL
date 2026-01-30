@@ -11,6 +11,7 @@ export class Sidebar {
         this.expandedNodes = new Set();
     }
 
+    // re render sidebar
     render() {
         rememberExpanded(this);
         const nodes = this.nodeManager.getNodes();

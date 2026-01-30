@@ -135,29 +135,32 @@ export class InteractionController {
     }
 
     _onMouseMove(e) {
+        // handle panning
         if (this.viewport.isPanning) {
             this.viewport.panMove(e.clientX, e.clientY);
             return;
         }
 
+        // handle drawing connection
         if (this.drawingConnection) {
             this.connections.updateTempTo(e.clientX, e.clientY);
             return;
         }
 
+        // handle dragging connection line
         if (this.draggingLine) {
             this.draggingLine.moved = true;
             const canvasCoords = this.viewport.toCanvasCoords(e.clientX, e.clientY);
             let midX = canvasCoords.x;
             let midY = canvasCoords.y;
             
-            // Always convert to grid coordinates
+            // always convert to grid coordinates
             const gridSize = this.grid ? this.grid.size : 20;
             if (this.grid) {
                 midX = this.grid.snap(midX);
                 midY = this.grid.snap(midY);
             }
-            // Convert pixels to grid cell positions
+            // convert pixels to grid cell positions
             midX = midX / gridSize;
             midY = midY / gridSize;
             
@@ -165,16 +168,25 @@ export class InteractionController {
             return;
         }
 
+        // handle node dragging
         if (!this.draggingNode) return;
+
+        // calculate new position
         const nd = this.nodes.getNodesMap().get(this.draggingNode);
         const el = this.nodes.getNodeElement(this.draggingNode);
+
+        // get mouse position in canvas coords
         const { x, y } = this.viewport.toCanvasCoords(e.clientX, e.clientY);
         let nx = x - this.dragOffset.x;
         let ny = y - this.dragOffset.y;
+
+        // snap to grid if enabled
         if (this.grid) {
             nx = this.grid.snap(nx);
             ny = this.grid.snap(ny);
         }
+
+        // update position
         nd.x = nx;
         nd.y = ny;
         if (el) {
@@ -184,11 +196,13 @@ export class InteractionController {
     }
 
     _onMouseUp(e) {
+        // end panning
         if (this.viewport.isPanning && e.button === 0) {
             this.viewport.endPan();
             return;
         }
 
+        // finish dragging connection line
         if (this.draggingLine) {
             const wasMoved = this.draggingLine.moved;
             this.draggingLine = null;
@@ -200,6 +214,7 @@ export class InteractionController {
             return;
         }
 
+        // finish drawing connection
         if (this.drawingConnection) {
             // check if released over a connection dot
             let targetDot = document.elementFromPoint(e.clientX, e.clientY)?.closest('.connection-dot');
@@ -208,6 +223,7 @@ export class InteractionController {
                 targetDot = stack.find(el => el.classList && el.classList.contains('connection-dot')) || null;
             }
             
+            // process connection
             if (targetDot) {
                 const targetRow = targetDot.closest('.canvas-node-row');
                 const targetNode = targetDot.closest('.canvas-node');
@@ -219,25 +235,26 @@ export class InteractionController {
                 let sourceNodeId, sourceRowIndex, destNodeId, destRowIndex;
                 
                 if (!this.connectionStart.isLeftDot && targetIsLeftDot) {
-                    // Right to left
+                    // right to left
                     sourceNodeId = this.connectionStart.nodeId;
                     sourceRowIndex = this.connectionStart.rowIndex;
                     destNodeId = targetNodeId;
                     destRowIndex = targetRowIndex;
                 } else if (this.connectionStart.isLeftDot && !targetIsLeftDot) {
-                    // Left to right
+                    // left to right
                     sourceNodeId = targetNodeId;
                     sourceRowIndex = targetRowIndex;
                     destNodeId = this.connectionStart.nodeId;
                     destRowIndex = this.connectionStart.rowIndex;
                 } else {
-                    // Invalid connection (same side), abort
+                    // invalid connection
                     sourceNodeId = this.connectionStart.nodeId;
                     sourceRowIndex = this.connectionStart.rowIndex;
                     destNodeId = targetNodeId;
                     destRowIndex = targetRowIndex;
                 }
                 
+                // add connection to model
                 this.model.addConnection(sourceNodeId, sourceRowIndex, destNodeId, destRowIndex);
             }
             this.connections.hideTemp();
@@ -249,14 +266,19 @@ export class InteractionController {
 
         // finalize node dragging
         if (this.draggingNode) {
+            // get node data
             const nodeId = this.draggingNode;
             const nd = this.nodes.getNodesMap().get(nodeId);
+
+            // update node position in model
             this.nodeManager.updateNode(nodeId, node => {
                 const x = this.grid ? this.grid.snap(nd.x) : nd.x;
                 const y = this.grid ? this.grid.snap(nd.y) : nd.y;
                 node.canvasPos = { x, y };
                 return node;
             });
+
+            // reset dragging state
             const el = this.nodes.getNodeElement(nodeId);
             if (el) el.style.zIndex = '1';
             this.draggingNode = null;
@@ -271,6 +293,8 @@ export class InteractionController {
         const nodeId = parseInt(node.dataset.nodeId, 10);
         const rowIndex = Array.from(node.querySelectorAll('.canvas-node-row')).indexOf(row);
         const isLeftDot = dotElement.classList.contains('left');
+
+        // set state
         this.drawingConnection = true;
         this.connectionStart = { nodeId, rowIndex, dotElement, isLeftDot };
         this.nodes.showConnectionDotsAcross(true);

@@ -1,4 +1,5 @@
 export function showColumnAttributesModal(sidebar, nodeId, rowIndex) {
+    // get node and row
     const node = sidebar.nodeManager.getNodes().find(n => n.id === nodeId);
     const row = node.rows[rowIndex];
 
@@ -38,16 +39,20 @@ export function showColumnAttributesModal(sidebar, nodeId, rowIndex) {
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
 
+    // close modal function
     const closeModal = () => {
         overlay.remove();
     };
 
+    // close on overlay click
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) closeModal();
     });
 
+    // close on close button click
     modal.querySelector('.modal-close').addEventListener('click', closeModal);
 
+    // save changes function
     const saveAttribute = (property, value) => {
         sidebar.nodeManager.updateNode(nodeId, node => {
             node.rows[rowIndex][property] = value;
@@ -55,22 +60,27 @@ export function showColumnAttributesModal(sidebar, nodeId, rowIndex) {
         });
     };
 
+    // event listeners for inputs
     modal.querySelector('#autoIncrement').addEventListener('change', (e) => {
         saveAttribute('autoIncrement', e.target.checked);
     });
 
+    // unsigned checkbox
     modal.querySelector('#unsigned').addEventListener('change', (e) => {
         saveAttribute('unsigned', e.target.checked);
     });
 
+    // default value input
     modal.querySelector('#defaultValue').addEventListener('blur', (e) => {
         saveAttribute('defaultValue', e.target.value);
     });
 
+    // comment textarea
     modal.querySelector('#comment').addEventListener('blur', (e) => {
         saveAttribute('comment', e.target.value);
     });
 
+    // delete column button
     modal.querySelector('.delete-column-btn').addEventListener('click', () => {
         sidebar.nodeManager.updateNode(nodeId, node => {
             node.rows.splice(rowIndex, 1);

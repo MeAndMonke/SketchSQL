@@ -47,6 +47,7 @@ export class NodeLayer {
         });
     }
 
+    // sync data model with rendered nodes
     sync() {
         const nodes = this.nodeManager.getNodes();
         const ids = new Set(nodes.map(n => n.id));
@@ -86,6 +87,7 @@ export class NodeLayer {
         });
     }
 
+    // handle key down
     _onKeyDown(e) {
         if (this.keyEventDone) return;
         if (e.key === 'Delete') {
@@ -98,17 +100,21 @@ export class NodeLayer {
         this.keyEventDone = true;
     }
 
+    // handle key up
     _onKeyUp(e) {
         this.keyEventDone = false;
     }
 
+    // create node element
     _createNodeElement(node, nd) {
+        // create main element
         const element = document.createElement('div');
         element.className = 'canvas-node';
         element.dataset.nodeId = node.id;
         element.style.left = `${nd.x}px`;
         element.style.top = `${nd.y}px`;
 
+        // create title
         const title = document.createElement('div');
         title.className = 'canvas-node-title';
         title.textContent = node.name;
@@ -118,10 +124,12 @@ export class NodeLayer {
         title.style.background = `linear-gradient(135deg, ${color.bg} 0%, ${color.bg} 100%)`;
         title.style.borderBottom = `2px solid ${color.border}`;
 
+        // create rows container
         const rows = document.createElement('div');
         rows.className = 'canvas-node-rows';
         this._fillRows(rows, node);
 
+        // assemble element
         element.appendChild(title);
         element.appendChild(rows);
         return element;
@@ -139,6 +147,7 @@ export class NodeLayer {
     }
 
     _fillRows(rowsContainer, node) {
+        // fill in rows
         if (!node.rows || node.rows.length === 0) return;
         node.rows.forEach(row => {
             const rowEl = document.createElement('div');
@@ -148,6 +157,7 @@ export class NodeLayer {
             const nameSpan = document.createElement('span');
             nameSpan.className = 'canvas-node-row-name';
             
+            // add index type icons
             if (row.indexType === 'Primary key') {
                 const img = document.createElement('img');
                 img.src = '../svg/key.svg';
@@ -184,10 +194,10 @@ export class NodeLayer {
             typeSpan.className = 'canvas-node-row-type';
             typeSpan.textContent = row.type;
 
-            // Create attributes container for comment and default icons
+            // create attributes container for comment and default icons
             const attributesSpan = document.createElement('span');
             attributesSpan.className = 'canvas-node-row-attributes';
-            
+            // add comment and default icons
             if (row.comment) {
                 const commentImg = document.createElement('img');
                 commentImg.src = '../svg/comment.svg';
@@ -198,6 +208,7 @@ export class NodeLayer {
                 attributesSpan.appendChild(commentImg);
             }
             
+            // add default value icon
             if (row.defaultValue !== undefined && row.defaultValue !== '') {
                 const defaultSpan = document.createElement('img');
                 defaultSpan.src = '../svg/bookmark.svg';
@@ -207,11 +218,13 @@ export class NodeLayer {
                 attributesSpan.appendChild(defaultSpan);
             }
 
+            // assemble row element
             const leftDot = document.createElement('div');
             leftDot.className = 'connection-dot left';
             const rightDot = document.createElement('div');
             rightDot.className = 'connection-dot right';
 
+            // assemble row element
             rowEl.appendChild(leftDot);
             rowEl.appendChild(nameSpan);
             if (attributesSpan.children.length > 0) {

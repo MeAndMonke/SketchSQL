@@ -8,6 +8,7 @@ export class ConnectionLayer {
         this.onClick = null;
         this._tempPath = null;
 
+        // delegate click events
         if (!this._delegated) {
             this.svg.addEventListener('click', (evt) => {
                 // onclick to detect which connection was clicked
@@ -32,30 +33,34 @@ export class ConnectionLayer {
         }
     }
 
+    // clear all connections
     clear() {
         while (this.svg.firstChild) {
             this.svg.removeChild(this.svg.firstChild);
         }
     }
 
+    // resize SVG to match canvas size
     resizeToCanvas() {
         this.svg.setAttribute('width', this.canvas.offsetWidth);
         this.svg.setAttribute('height', this.canvas.offsetHeight);
     }
 
     drawConnections(nodes, canvasNodes) {
-        // Draw all connections between nodes
+        // draw all connections between nodes
         this.clear();
         this.resizeToCanvas();
         const panX = this.viewport ? this.viewport.panX : 0;
         const panY = this.viewport ? this.viewport.panY : 0;
         const zoom = this.viewport ? this.viewport.zoom : 1;
 
+        // iterate over all nodes and their rows
         nodes.forEach(sourceNode => {
             if (!sourceNode.rows) return;
             sourceNode.rows.forEach((row, rowIndex) => {
                 if (!row.foreignKeyTo) return;
 
+                // normalize to array
                 const raw = Array.isArray(row.foreignKeyTo) ? row.foreignKeyTo : [row.foreignKeyTo];
                 const connections = raw.map((entry) => {
                     if (entry && typeof entry === 'object') {
@@ -64,7 +69,9 @@ export class ConnectionLayer {
                     return { target: entry, rel: '1:1' };
                 });
 
+                // draw each connection
                 connections.forEach((conn, connIndex) => {
+                    // determine target node and row
                     let targetNodeId, targetRowIndex;
                     if (typeof conn.target === 'string' && conn.target.includes(':')) {
                         [targetNodeId, targetRowIndex] = conn.target.split(':');
@@ -74,22 +81,27 @@ export class ConnectionLayer {
                         targetRowIndex = 0;
                     }
 
+                    // find target node
                     const targetNode = nodes.find(n => n.id === parseInt(targetNodeId, 10));
                     if (!targetNode) return;
 
+                    // get elements and their bounds
                     const sourceElement = canvasNodes.get(sourceNode.id)?.element;
                     const targetElement = canvasNodes.get(targetNode.id)?.element;
                     if (!sourceElement || !targetElement) return;
 
+                    // calculate positions
                     const sourceBounds = sourceElement.getBoundingClientRect();
                     const targetBounds = targetElement.getBoundingClientRect();
                     const canvasBounds = this.canvas.getBoundingClientRect();
 
+                    // row positions
                     const sourceRows = sourceElement.querySelectorAll('.canvas-node-row');
                     const sourceRowElement = sourceRows[rowIndex];
                     const sourceRowBounds = sourceRowElement?.getBoundingClientRect();
                     const sourceRowY = sourceRowBounds ? sourceRowBounds.top - canvasBounds.top + sourceRowBounds.height / 2 : sourceBounds.top - canvasBounds.top + 50;
 
+                    // target row positions
                     const targetRows = targetElement.querySelectorAll('.canvas-node-row');
                     const targetRowElement = targetRows[targetRowIndex];
                     const targetRowBounds = targetRowElement?.getBoundingClientRect();
@@ -116,14 +128,13 @@ export class ConnectionLayer {
                     // use custom midX if provided
                     let midXc;
                     if (conn.midX !== undefined) {
-                        // Safety check: if value is > 100, it's likely pixel data (old format)
-                        // If value is <= 100, it's grid coordinate data (new format)
+                        // safety check
                         if (conn.midX > 100) {
-                            // Old pixel format - use as-is
+                            // old pixel format - use as-is
                             midXc = conn.midX;
                             
                         } else {
-                            // New grid format - convert to pixels
+                            // new grid format - convert to pixels
                             midXc = this.grid ? conn.midX * this.grid.size : conn.midX;
                             
                         }
@@ -150,13 +161,13 @@ export class ConnectionLayer {
                     // create path
                     let d;
                     if (conn.midY !== undefined) {
-                        // Safety check: if value is > 100, it's likely pixel data (old format)
+                        // safety check: if value is > 100, it's likely pixel data (old format)
                         let midYc;
                         if (conn.midY > 100) {
-                            // Old pixel format - use as-is
+                            // old pixel format - use as-is
                             midYc = conn.midY;
                         } else {
-                            // New grid format - convert to pixels
+                            // new grid format - convert to pixels
                             midYc = this.grid ? conn.midY * this.grid.size : conn.midY;
                         }
                         const midY = panY + midYc * zoom;
@@ -166,8 +177,10 @@ export class ConnectionLayer {
                         d = `M ${x1} ${y1} L ${x1Stub} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2Stub} ${y2} L ${x2} ${y2}`;
                     }
 
+                    // create SVG elements
                     const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
+                    // hit area
                     const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                     hit.setAttribute('d', d);
                     hit.setAttribute('stroke', '#000');
@@ -176,6 +189,7 @@ export class ConnectionLayer {
                     hit.setAttribute('opacity', '0');
                     hit.setAttribute('pointer-events', 'stroke');
 
+                    // visible line
                     const visible = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                     visible.setAttribute('d', d);
                     visible.setAttribute('stroke', '#5b9dd9');
@@ -192,6 +206,7 @@ export class ConnectionLayer {
                     group.dataset.connIndex = String(connIndex);
                     group.dataset.rel = String(conn.rel || '1:1');
 
+                    // append paths
                     group.appendChild(hit);
                     group.appendChild(visible);
 
@@ -217,6 +232,7 @@ export class ConnectionLayer {
                     } else {
                         controlDot.setAttribute('cy', y1);
                     }
+                    // control dot attributes
                     controlDot.setAttribute('r', '6');
                     controlDot.setAttribute('fill', '#2b5f91ff');
                     controlDot.setAttribute('stroke', '#fff');
@@ -254,24 +270,31 @@ export class ConnectionLayer {
 
     updateTempTo(clientX, clientY) {
         if (!this._tempPath || !this._tempStartCanvas) return;
+
+        // calculate positions
         const rect = this.canvas.getBoundingClientRect();
         const panX = this.viewport ? this.viewport.panX : 0;
         const panY = this.viewport ? this.viewport.panY : 0;
         const zoom = this.viewport ? this.viewport.zoom : 1;
+
         // end in screen relative
         const xr = clientX - rect.left;
         const yr = clientY - rect.top;
+
         // convert to canvas coords
         const x2c = (xr - panX) / zoom;
         const y2c = (yr - panY) / zoom;
         let midXc = (this._tempStartCanvas.x + x2c) / 2;
         if (this.grid) midXc = this.grid.snap(midXc);
+
         // convert back to screen relative for drawing
         const x1 = panX + this._tempStartCanvas.x * zoom;
         const y1 = panY + this._tempStartCanvas.y * zoom;
         const x2 = panX + x2c * zoom;
         const y2 = panY + y2c * zoom;
         const midX = panX + midXc * zoom;
+
+        // draw temp path
         this._tempPath.setAttribute('d', `M ${x1} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2} ${y2}`);
     }
 
@@ -283,6 +306,7 @@ export class ConnectionLayer {
         }
     }
 
+    // ensure temp path exists
     _ensureTemp() {
         // create temp path if not exists
         if (!this._tempPath) {
@@ -296,6 +320,7 @@ export class ConnectionLayer {
         }
     }
 
+    // add relationship notation
     _addRelationshipNotation(group, rel, x1, y1, x2, y2, zoom) {
         const footSize = 5 * zoom;
         
