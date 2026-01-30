@@ -6,6 +6,7 @@ import { connect } from 'http2';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const router = Router();
+// create a new project
 router.post('/api/createProject', async (req, res) => {
     const userId = req.session.user.id;
     const title = req.body.title;
@@ -21,6 +22,7 @@ router.post('/api/createProject', async (req, res) => {
         res.status(500).json({ message: 'Database error' });
     }
 });
+// get all projects for the logged in user
 router.get('/api/getProjects', async (req, res) => {
     const userId = req.session.user.id;
     try {
@@ -34,13 +36,14 @@ router.get('/api/getProjects', async (req, res) => {
         res.status(500).json({ message: 'Database error' });
     }
 });
+// delete a project
 router.post('/api/deleteProject', async (req, res) => {
     const { projectId } = req.body;
     try {
         const ownerId = req.session.user.id;
-        // Verify project ownership
         const connection = await pool.getConnection();
         const [rows] = await connection.query('SELECT ownerID FROM Canvas WHERE id = ?', [projectId]);
+        // make sure the project belongs to the logged in user
         if (rows.length === 0 || rows[0].ownerID !== ownerId) {
             connection.release();
             return res.status(403).json({ message: 'Unauthorized' });

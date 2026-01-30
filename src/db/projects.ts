@@ -10,6 +10,7 @@ const __dirname = path.dirname(__filename);
 
 const router = Router();
 
+// create a new project
 router.post('/api/createProject', async (req:Request, res: Response) => {
     const userId = req.session.user.id
     const title = req.body.title
@@ -29,6 +30,7 @@ router.post('/api/createProject', async (req:Request, res: Response) => {
     }
 });
 
+// get all projects for the logged in user
 router.get('/api/getProjects', async (req: Request, res: Response) => {
     const userId = req.session.user.id
 
@@ -46,14 +48,12 @@ router.get('/api/getProjects', async (req: Request, res: Response) => {
     }
 });
 
+// delete a project
 router.post('/api/deleteProject', async (req: Request, res: Response) => {
     const { projectId } = req.body;
     
     try {
         const ownerId = req.session.user.id;
-
-        // Verify project ownership
-        
     
         const connection = await pool.getConnection();
         const [rows]: any = await connection.query(
@@ -61,6 +61,7 @@ router.post('/api/deleteProject', async (req: Request, res: Response) => {
             [ projectId ]
         );
 
+        // make sure the project belongs to the logged in user
         if (rows.length === 0 || rows[0].ownerID !== ownerId) {
             connection.release();
             return res.status(403).json({ message: 'Unauthorized' });

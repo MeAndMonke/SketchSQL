@@ -6,6 +6,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const router = Router();
 async function loadCanvasState(db, canvasId) {
+    const nodeMap = new Map();
+    const rowIdToIndex = new Map();
     const [nodeRows] = await db.query('SELECT id, title, nodeIndex, posX, posY FROM Node WHERE canvasID = ? ORDER BY nodeIndex ASC', [canvasId]);
     const nodeIds = nodeRows.map((n) => n.id);
     let rowRows = [];
@@ -17,8 +19,6 @@ async function loadCanvasState(db, canvasId) {
             [connectionRows] = await db.query('SELECT * FROM Connections WHERE startID IN (?)', [rowIds]);
         }
     }
-    const nodeMap = new Map();
-    const rowIdToIndex = new Map();
     nodeRows.forEach((row, idx) => {
         nodeMap.set(row.id, {
             id: row.id,
@@ -178,10 +178,8 @@ router.post('/api/canvas/:canvasId/sync', async (req, res) => {
             }
             rowIdMap.set(nodeId, rowIdsForNode);
         }
-        // 3. Delete nodes that are not kept
         const nodesToDelete = Array.from(existingNodeIds).filter((id) => !keptNodeIds.has(id));
         if (nodesToDelete.length > 0) {
-            // Delete related rows and connections first (to maintain referential integrity)
             const [rowsToDelete] = await db.query('SELECT id FROM RowEntries WHERE nodeID IN (?)', [nodesToDelete]);
             const rowIdsToDelete = rowsToDelete.map((r) => r.id);
             if (rowIdsToDelete.length > 0) {

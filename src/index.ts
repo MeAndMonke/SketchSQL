@@ -7,8 +7,6 @@ import { fileURLToPath } from 'url';
 import loginRouter from './db/login.js';
 import projectRouter from './db/projects.js'
 import nodeRouter from './db/canvas/nodes.js';
-import rowRouter from './db/canvas/rows.js';
-import connectionRouter from './db/canvas/connections.js';
 
 declare module 'express-session' {
   interface SessionData {
@@ -34,8 +32,6 @@ app.use(session({
 app.use(loginRouter);
 app.use(projectRouter);
 app.use(nodeRouter);
-app.use(rowRouter);
-app.use(connectionRouter);
 
 app.get('/canvas/:id', (req: Request, res: Response) => {
     res.sendFile(path.join(__dirname, '../public/templates/canvas.html'));

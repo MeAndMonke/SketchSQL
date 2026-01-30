@@ -49,20 +49,6 @@ export class InteractionController {
                     this.model.updateConnectionRel(ref, '1:N');
                     this._redrawConnections();
                 }},
-                { label: '+ Add dot', title: 'Add another connection dot', className: 'menu-add', onClick: () => {
-                    this.nodeManager.updateNode(ref.sourceNodeId, node => {
-                        if (node.rows[ref.sourceRowIndex]) {
-                            node.rows[ref.sourceRowIndex].dotCount = (node.rows[ref.sourceRowIndex].dotCount || 1) + 1;
-                        }
-                        return node;
-                    });
-                    const nodesMap = this.nodes.getNodesMap();
-                    const nodeData = nodesMap.get(ref.sourceNodeId);
-                    if (nodeData) {
-                        const sourceNode = this.nodeManager.getNodes().find(n => n.id === ref.sourceNodeId);
-                        this.nodes._updateNodeContent(nodeData.element, sourceNode);
-                    }
-                }},
                 { label: '🗑', title: 'Delete connection', className: 'menu-trash', onClick: () => this.model.deleteConnection(ref) },
             ]);
         };

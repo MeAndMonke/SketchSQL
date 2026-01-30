@@ -225,10 +225,8 @@ router.post('/api/canvas/:canvasId/sync', async (req: Request, res: Response) =>
             rowIdMap.set(nodeId, rowIdsForNode);
         }
 
-        // 3. Delete nodes that are not kept
         const nodesToDelete = Array.from(existingNodeIds).filter((id) => !keptNodeIds.has(id));
         if (nodesToDelete.length > 0) {
-            // Delete related rows and connections first (to maintain referential integrity)
             const [rowsToDelete]: any = await db.query('SELECT id FROM RowEntries WHERE nodeID IN (?)', [nodesToDelete]);
             const rowIdsToDelete = (rowsToDelete as any[]).map((r) => r.id);
             if (rowIdsToDelete.length > 0) {

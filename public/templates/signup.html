@@ -18,6 +18,7 @@
             <br>
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required>
+            <div class="error-message"></div>
             <br>
             <button type="submit">Signup</button>
             <h4>Already have an account? <a href="/login">Login here</a></h4>
@@ -57,7 +58,13 @@
         })
         .then(response => response.json())
         .then(data => {
-            window.location.href = "/login"
+            if (data.message === 'Signup successful') {
+                window.location.href = '/login';
+                return;
+            }
+            
+            document.querySelector('.error-message').textContent = data.message || 'Signup failed';
+            
         })
         .catch((error) => {
             console.error('Error:', error);

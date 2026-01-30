@@ -10,11 +10,12 @@
 
     <div class="login-container">
         <form onsubmit="postLogin(); return false;">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required>
+            <label for="usernameOrEmail">Username or Email</label>
+            <input type="text" id="usernameOrEmail" name="usernameOrEmail" required>
             <br>
             <label for="password">Password</label>
             <input type="password" id="password" name="password" required>
+            <div class="error-message"></div>
             <br>
             <button type="submit">Login</button>
             <h4>Don't have an account? <a href="/register">Register here</a></h4>
@@ -42,27 +43,29 @@
     checkLoggedIn();
 
     function postLogin() {
-        const username = document.getElementById('username').value;
+        const usernameOrEmail = document.getElementById('usernameOrEmail').value;
         const password = document.getElementById('password').value;
-
-        console.log(username, password);
 
         fetch('/api/submit-login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ username, password }),
+            body: JSON.stringify({ usernameOrEmail, password }),
         })
         .then(response => response.json())
         .then(data => {
             console.log('Success:', data);
             if (data.message === 'Login successful') {
                 window.location.href = '/';
+                return;
             }
+            document.querySelector('.error-message').textContent = data.message || 'Login failed';
+            
         })
         .catch((error) => {
             console.error('Error:', error);
+
         });
     }
 </script>

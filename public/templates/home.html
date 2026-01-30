@@ -8,6 +8,8 @@
 </head>
 <body>
     <div class="topbar">
+        
+        <button id="logoutButton" onclick="logout()">Logout</button>
         <div class="topbar-right">
             <div class="profileImage"><img id="profileImage" src="https://ui-avatars.com/api/?name=User&background=random&size=128" alt="Profile Image"></div>
         </div>
@@ -51,6 +53,23 @@
     </form>
 
     <script>
+
+        function logout() {
+            fetch('/api/logout', {
+                method: 'POST',
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/login';
+                } else {
+                    alert('Logout failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error during logout:', error);
+                alert('An error occurred during logout');
+            });
+        }
 
         function createNewDiagram(event) {
             event.preventDefault();
